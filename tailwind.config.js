@@ -7,6 +7,13 @@ module.exports = {
     extend: {
       fontFamily: {
         'inter': ['Inter', 'sans-serif'],
+        'sans': ['Inter', 'system-ui', 'sans-serif'],
+      },
+      fontWeight: {
+        'black': '900',
+      },
+      letterSpacing: {
+        'widest': '0.25em',
       },
       animation: {
         'fade-in-up': 'fadeInUp 1s ease-out',
