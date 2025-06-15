@@ -34,9 +34,10 @@ function App() {
 
   // Deck management state
   const [customDecks, setCustomDecks] = useState<{[key: string]: {question: string, answer: string}[]}>({
+    'The Economist': flashcards,
     'Sample Deck': flashcards
   });
-  const [selectedDeck, setSelectedDeck] = useState<string>('Sample Deck');
+  const [selectedDeck, setSelectedDeck] = useState<string>('The Economist');
   const [showAddCard, setShowAddCard] = useState(false);
   const [showMyDecks, setShowMyDecks] = useState(false);
   
@@ -704,12 +705,12 @@ function App() {
   };
 
   const handleDeleteDeck = (deckName: string) => {
-    if (deckName !== 'Sample Deck') {
+    if (deckName !== 'Sample Deck' && deckName !== 'The Economist') {
       const newDecks = { ...customDecks };
       delete newDecks[deckName];
       setCustomDecks(newDecks);
       if (selectedDeck === deckName) {
-        setSelectedDeck('Sample Deck');
+        setSelectedDeck('The Economist');
       }
     }
   };
@@ -1217,23 +1218,23 @@ function App() {
                       >
                         Select
                       </button>
-                      {deckName !== 'Sample Deck' && (
-                        <button
-                          onClick={() => handleDeleteDeck(deckName)}
-                          style={{
-                            padding: '8px 16px',
-                            margin: '0 5px',
-                            fontSize: '14px',
-                            border: '2px solid #dc3545',
-                            borderRadius: '8px',
-                            background: '#dc3545',
-                            color: '#fff',
-                            cursor: 'pointer',
-                          }}
-                        >
-                          Delete
-                        </button>
-                      )}
+                                             {deckName !== 'Sample Deck' && deckName !== 'The Economist' && (
+                         <button
+                           onClick={() => handleDeleteDeck(deckName)}
+                           style={{
+                             padding: '8px 16px',
+                             margin: '0 5px',
+                             fontSize: '14px',
+                             border: '2px solid #dc3545',
+                             borderRadius: '8px',
+                             background: '#dc3545',
+                             color: '#fff',
+                             cursor: 'pointer',
+                           }}
+                         >
+                           Delete
+                         </button>
+                       )}
                     </div>
                   </div>
                 </div>
