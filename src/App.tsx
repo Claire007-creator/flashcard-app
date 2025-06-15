@@ -237,6 +237,42 @@ function App() {
     return matrix[str2.length][str1.length];
   };
 
+  const highlightUserAnswer = (userText: string, correctText: string) => {
+    const user = userText.trim();
+    const correct = correctText.trim();
+    
+    if (normalizeText(user) === normalizeText(correct)) {
+      return <span style={{ color: 'green' }}>{user}</span>;
+    }
+    
+    // Split into characters for detailed comparison
+    const userChars = user.split('');
+    const correctChars = correct.split('');
+    const maxLength = Math.max(userChars.length, correctChars.length);
+    
+    const result = [];
+    for (let i = 0; i < maxLength; i++) {
+      const userChar = userChars[i] || '';
+      const correctChar = correctChars[i] || '';
+      
+      if (userChar && correctChar && userChar.toLowerCase() === correctChar.toLowerCase()) {
+        // Character matches - show in green
+        result.push(<span key={i} style={{ color: 'green' }}>{userChar}</span>);
+      } else if (userChar && correctChar) {
+        // Character exists but wrong - show in red with underline
+        result.push(<span key={i} style={{ color: 'red', textDecoration: 'underline', backgroundColor: '#ffeeee' }}>{userChar}</span>);
+      } else if (userChar) {
+        // Extra character in user's answer - show in red
+        result.push(<span key={i} style={{ color: 'red', backgroundColor: '#ffeeee' }}>{userChar}</span>);
+      } else if (correctChar) {
+        // Missing character - show as red underscore
+        result.push(<span key={i} style={{ color: 'red' }}>_</span>);
+      }
+    }
+    
+    return <span>{result}</span>;
+  };
+
   const highlightDifferences = (userText: string, correctText: string) => {
     const user = userText.trim();
     const correct = correctText.trim();
@@ -693,34 +729,34 @@ function App() {
             
             {/* Test Direction Toggle */}
             <div style={{ marginBottom: '20px' }}>
-              <button
-                onClick={() => handleTestDirectionChange('definition-to-word')}
-                style={{
-                  padding: '8px 16px',
-                  margin: '0 5px',
-                  border: '2px solid #333',
-                  borderRadius: '8px',
-                  background: testDirection === 'definition-to-word' ? '#333' : '#fff',
-                  color: testDirection === 'definition-to-word' ? '#fff' : '#333',
-                  cursor: 'pointer',
-                }}
-              >
-                Answer → Question
-              </button>
-              <button
-                onClick={() => handleTestDirectionChange('word-to-definition')}
-                style={{
-                  padding: '8px 16px',
-                  margin: '0 5px',
-                  border: '2px solid #333',
-                  borderRadius: '8px',
-                  background: testDirection === 'word-to-definition' ? '#333' : '#fff',
-                  color: testDirection === 'word-to-definition' ? '#fff' : '#333',
-                  cursor: 'pointer',
-                }}
-              >
-                Question → Answer
-              </button>
+                             <button
+                 onClick={() => handleTestDirectionChange('definition-to-word')}
+                 style={{
+                   padding: '8px 16px',
+                   margin: '0 5px',
+                   border: '2px solid #333',
+                   borderRadius: '8px',
+                   background: testDirection === 'definition-to-word' ? '#333' : '#fff',
+                   color: testDirection === 'definition-to-word' ? '#fff' : '#333',
+                   cursor: 'pointer',
+                 }}
+               >
+                 Side B → Side A
+               </button>
+               <button
+                 onClick={() => handleTestDirectionChange('word-to-definition')}
+                 style={{
+                   padding: '8px 16px',
+                   margin: '0 5px',
+                   border: '2px solid #333',
+                   borderRadius: '8px',
+                   background: testDirection === 'word-to-definition' ? '#333' : '#fff',
+                   color: testDirection === 'word-to-definition' ? '#fff' : '#333',
+                   cursor: 'pointer',
+                 }}
+               >
+                 Side A → Side B
+               </button>
             </div>
             
             {/* Test Order Toggle */}
@@ -766,67 +802,90 @@ function App() {
                 marginBottom: '20px',
                 background: '#f9f9f9'
               }}>
-                <h3 style={{ marginBottom: '20px' }}>
-                  {testDirection === 'definition-to-word' ? 'What is the question for this answer?' : 'What is the answer to this question?'}
-                </h3>
+                                 <h3 style={{ marginBottom: '20px' }}>
+                   {testDirection === 'definition-to-word' ? 'Side A (Type the question for this answer):' : 'Side B (Type the answer for this question):'}
+                 </h3>
                 <p style={{ fontSize: '18px', fontWeight: 'bold' }}>
                   {testDirection === 'definition-to-word' ? currentTestCard.answer : currentTestCard.question}
                 </p>
               </div>
               
-              <input
-                type="text"
-                value={userAnswer}
-                onChange={(e) => setUserAnswer(e.target.value)}
-                onKeyPress={handleTestKeyPress}
-                placeholder="Type your answer here..."
-                style={{
-                  padding: '12px',
-                  fontSize: '16px',
-                  border: '2px solid #ccc',
-                  borderRadius: '8px',
-                  width: '300px',
-                  marginRight: '10px',
-                }}
-                autoFocus
-              />
+                             <input
+                 type="text"
+                 value={userAnswer}
+                 onChange={(e) => setUserAnswer(e.target.value)}
+                 onKeyPress={(e) => {
+                   if (e.key === 'Enter' || e.key === 'Return') {
+                     handleSubmitAnswer();
+                   }
+                 }}
+                 placeholder="Type your answer here..."
+                 style={{
+                   padding: '12px',
+                   fontSize: '16px',
+                   border: '2px solid #ccc',
+                   borderRadius: '8px',
+                   width: '350px',
+                   maxWidth: '350px',
+                   marginRight: '10px',
+                   display: 'block',
+                   margin: '0 auto 20px auto',
+                 }}
+                 autoFocus
+               />
               
-              <button
-                onClick={handleSubmitAnswer}
-                disabled={!userAnswer.trim()}
-                style={{
-                  padding: '12px 24px',
-                  fontSize: '16px',
-                  border: '2px solid #007bff',
-                  borderRadius: '8px',
-                  background: userAnswer.trim() ? '#007bff' : '#ccc',
-                  color: '#fff',
-                  cursor: userAnswer.trim() ? 'pointer' : 'not-allowed',
-                }}
-              >
-                Submit
-              </button>
+                             <div style={{ textAlign: 'center' }}>
+                 <button
+                   onClick={handleSubmitAnswer}
+                   disabled={!userAnswer.trim()}
+                   style={{
+                     padding: '12px 24px',
+                     fontSize: '16px',
+                     border: '2px solid #007bff',
+                     borderRadius: '8px',
+                     background: userAnswer.trim() ? '#007bff' : '#ccc',
+                     color: '#fff',
+                     cursor: userAnswer.trim() ? 'pointer' : 'not-allowed',
+                   }}
+                 >
+                   Submit (or press Enter)
+                 </button>
+               </div>
             </div>
           ) : (
-            // Test Result
-            <div style={{ marginBottom: '30px' }}>
-              <div style={{ 
-                border: '2px solid #333', 
-                borderRadius: '10px', 
-                padding: '30px', 
-                marginBottom: '20px',
-                background: '#f9f9f9'
-              }}>
-                <h3>Your Answer: {userAnswer}</h3>
-                <h3>Correct Answer: {testDirection === 'definition-to-word' ? currentTestCard.question : currentTestCard.answer}</h3>
-                <p style={{ 
-                  fontSize: '18px', 
-                  fontWeight: 'bold',
-                  color: calculateSimilarity(userAnswer, testDirection === 'definition-to-word' ? currentTestCard.question : currentTestCard.answer) === 1 ? 'green' : 'red'
-                }}>
-                  {calculateSimilarity(userAnswer, testDirection === 'definition-to-word' ? currentTestCard.question : currentTestCard.answer) === 1 ? 'Correct! ✅' : 'Incorrect ❌'}
-                </p>
-              </div>
+                         // Test Result
+             <div style={{ marginBottom: '30px' }}>
+               <div style={{ 
+                 border: '2px solid #333', 
+                 borderRadius: '10px', 
+                 padding: '30px', 
+                 marginBottom: '20px',
+                 background: '#f9f9f9'
+               }}>
+                 <div style={{ marginBottom: '20px' }}>
+                   <h3 style={{ fontStyle: 'italic', color: '#666', margin: '0 0 10px 0' }}>Your Answer:</h3>
+                   <p style={{ fontSize: '18px', margin: '0' }}>
+                     {highlightUserAnswer(userAnswer, testDirection === 'definition-to-word' ? currentTestCard.question : currentTestCard.answer)}
+                   </p>
+                 </div>
+                 
+                 <div style={{ marginBottom: '20px' }}>
+                   <h3 style={{ fontWeight: 'bold', color: '#333', margin: '0 0 10px 0' }}>Correct Answer:</h3>
+                   <p style={{ fontSize: '18px', fontWeight: 'bold', color: '#007bff', margin: '0' }}>
+                     {testDirection === 'definition-to-word' ? currentTestCard.question : currentTestCard.answer}
+                   </p>
+                 </div>
+                 
+                 <p style={{ 
+                   fontSize: '20px', 
+                   fontWeight: 'bold',
+                   color: calculateSimilarity(userAnswer, testDirection === 'definition-to-word' ? currentTestCard.question : currentTestCard.answer) === 1 ? 'green' : 'red',
+                   textAlign: 'center',
+                   margin: '0'
+                 }}>
+                   {calculateSimilarity(userAnswer, testDirection === 'definition-to-word' ? currentTestCard.question : currentTestCard.answer) === 1 ? 'Correct! ✅' : 'Incorrect ❌'}
+                 </p>
+               </div>
               
               <button
                 onClick={handleNextTestCard}
