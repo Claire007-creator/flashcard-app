@@ -7,6 +7,8 @@ import TestReport from './components/TestReport';
 import AuthForm from './components/AuthForm';
 import UserProfile from './components/UserProfile';
 import { loadCards, saveCards, getStorageInfo } from './utils/storage';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { useInView } from 'react-intersection-observer';
 
 interface Card {
   id: number;
@@ -828,157 +830,332 @@ function App() {
     }
   };
 
+  const { scrollYProgress } = useScroll();
+  const y = useTransform(scrollYProgress, [0, 1], ['0%', '50%']);
+  
+  const [heroRef, heroInView] = useInView({
+    threshold: 0.1,
+    triggerOnce: true
+  });
+  
+  const [animationRef, animationInView] = useInView({
+    threshold: 0.3,
+    triggerOnce: true
+  });
+
   return (
-    <div className="scroll-smooth">
+    <div className="scroll-smooth bg-white">
       {/* Hero Section */}
-      <section id="hero" className="min-h-screen flex flex-col justify-center items-center bg-gray-50 text-center px-8 relative overflow-hidden">
-        <div className="max-w-6xl mx-auto animate-fade-in-up">
-          <h1 className="text-6xl md:text-8xl lg:text-9xl font-black text-gray-900 mb-8 leading-none tracking-tight">
-            Great Learning.
-          </h1>
-          <h2 className="text-4xl md:text-6xl lg:text-7xl font-black text-gray-900 mb-12 leading-none tracking-tight">
-            No Nonsense.
-          </h2>
-          <p className="text-lg md:text-xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed font-medium">
-            From flashcards to mastery, I work remotely with learners and educators 
-            from all over the world to build exceptional vocabulary skills.
-          </p>
-          <button 
-            onClick={() => document.getElementById('flashcards')?.scrollIntoView({ behavior: 'smooth' })}
-            className="bg-black text-white px-12 py-4 text-lg font-semibold hover:bg-gray-800 transition-all duration-300 uppercase tracking-wider"
+      <motion.section 
+        ref={heroRef}
+        className="min-h-screen flex flex-col justify-center items-center bg-white text-center px-8 relative overflow-hidden"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: heroInView ? 1 : 0 }}
+        transition={{ duration: 1.2, ease: "easeOut" }}
+      >
+        <div className="max-w-6xl mx-auto">
+          <motion.h1 
+            className="text-7xl md:text-8xl lg:text-9xl font-light text-black mb-6 leading-none tracking-tight"
+            style={{ fontFamily: "'Playfair Display', serif" }}
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: heroInView ? 0 : 100, opacity: heroInView ? 1 : 0 }}
+            transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
           >
-            Start Learning
-          </button>
+            Learn Today.
+          </motion.h1>
+          <motion.h2 
+            className="text-5xl md:text-6xl lg:text-7xl font-light text-black mb-16 leading-none tracking-tight"
+            style={{ fontFamily: "'Playfair Display', serif" }}
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: heroInView ? 0 : 100, opacity: heroInView ? 1 : 0 }}
+            transition={{ duration: 1, delay: 0.4, ease: "easeOut" }}
+          >
+            No Nonsense.
+          </motion.h2>
+          <motion.p 
+            className="text-xl md:text-2xl text-gray-600 mb-16 max-w-4xl mx-auto leading-relaxed font-light"
+            initial={{ y: 50, opacity: 0 }}
+            animate={{ y: heroInView ? 0 : 50, opacity: heroInView ? 1 : 0 }}
+            transition={{ duration: 1, delay: 0.6, ease: "easeOut" }}
+          >
+            Master vocabulary with precision and elegance. From flashcards to fluency, 
+            we craft learning experiences that transform knowledge into wisdom.
+          </motion.p>
         </div>
         
         {/* Scroll Indicator */}
-        <div 
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex flex-col items-center cursor-pointer group"
-          onClick={() => document.getElementById('flashcards')?.scrollIntoView({ behavior: 'smooth' })}
+        <motion.div 
+          className="absolute bottom-12 left-1/2 transform -translate-x-1/2 flex flex-col items-center cursor-pointer"
+          onClick={() => document.getElementById('animation-section')?.scrollIntoView({ behavior: 'smooth' })}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: heroInView ? 1 : 0 }}
+          transition={{ duration: 1, delay: 1 }}
         >
-          <div className="w-6 h-10 border-2 border-gray-400 rounded-full flex justify-center">
-            <div className="w-1 h-3 bg-gray-400 rounded-full mt-2 animate-bounce"></div>
-          </div>
-          <span className="text-xs text-gray-400 font-medium uppercase tracking-widest mt-2 group-hover:text-gray-600 transition-colors">
+          <motion.div 
+            className="w-px h-16 bg-black mb-4"
+            animate={{ scaleY: [1, 1.2, 1] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <span className="text-xs text-black font-medium uppercase tracking-widest">
             Scroll
           </span>
-        </div>
+        </motion.div>
+      </motion.section>
+
+      {/* Animation Section */}
+      <motion.section 
+        id="animation-section"
+        ref={animationRef}
+        className="min-h-screen flex items-center justify-center bg-gray-50 px-8 py-20"
+        style={{ y }}
+      >
+        <motion.div 
+          className="text-center max-w-4xl mx-auto"
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: animationInView ? 1 : 0.8, opacity: animationInView ? 1 : 0 }}
+          transition={{ duration: 1.5, ease: "easeOut" }}
+        >
+          {/* Animated Flashcard Placeholder */}
+          <motion.div 
+            className="w-80 h-48 mx-auto mb-12 bg-white rounded-2xl shadow-2xl flex items-center justify-center border border-gray-100"
+            animate={{ 
+              rotateY: animationInView ? [0, 180, 360] : 0,
+              scale: animationInView ? [1, 1.05, 1] : 1
+            }}
+            transition={{ 
+              duration: 3, 
+              repeat: Infinity, 
+              repeatDelay: 2,
+              ease: "easeInOut" 
+            }}
+          >
+            <div className="text-center">
+              <div className="text-6xl mb-4">🧠</div>
+              <p className="text-lg font-medium text-gray-700">Knowledge</p>
+              <p className="text-sm text-gray-500">Transforms</p>
+            </div>
+          </motion.div>
+          
+          <motion.h3 
+            className="text-4xl md:text-5xl font-light text-gray-800 mb-8 leading-tight"
+            style={{ fontFamily: "'Playfair Display', serif" }}
+            initial={{ y: 50, opacity: 0 }}
+            animate={{ y: animationInView ? 0 : 50, opacity: animationInView ? 1 : 0 }}
+            transition={{ duration: 1, delay: 0.5 }}
+          >
+            Every card tells a story.
+            <br />
+            Every flip reveals wisdom.
+          </motion.h3>
+        </motion.div>
+      </motion.section>
+
+      {/* Dark Quote Section */}
+      <section className="min-h-screen bg-gray-900 flex items-center justify-center px-8 py-20">
+        <motion.div 
+          className="text-center max-w-5xl mx-auto"
+          initial={{ opacity: 0, y: 100 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1.2, ease: "easeOut" }}
+          viewport={{ once: true, amount: 0.3 }}
+        >
+          <blockquote 
+            className="text-4xl md:text-5xl lg:text-6xl font-light text-white leading-tight mb-12"
+            style={{ fontFamily: "'Playfair Display', serif" }}
+          >
+            "The beautiful thing about learning is that no one can take it away from you."
+          </blockquote>
+          <cite className="text-lg text-gray-400 font-light tracking-wider">
+            — B.B. King
+          </cite>
+        </motion.div>
       </section>
 
       {/* Flashcard Section */}
-      <section id="flashcards" className="min-h-screen bg-gray-900 flex items-center justify-center px-4 py-20">
-        <div className="max-w-6xl w-full mx-4">
-          <div className="text-center mb-16">
-            <h2 className="text-5xl md:text-7xl font-black text-white mb-6 leading-none tracking-tight">
-              Your Learning Hub
+      <section id="flashcards" className="min-h-screen bg-white flex items-center justify-center px-8 py-20">
+        <div className="max-w-6xl w-full mx-auto">
+          <motion.div 
+            className="text-center mb-20"
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, ease: "easeOut" }}
+            viewport={{ once: true, amount: 0.3 }}
+          >
+            <h2 
+              className="text-5xl md:text-6xl lg:text-7xl font-light text-black mb-8 leading-none tracking-tight"
+              style={{ fontFamily: "'Playfair Display', serif" }}
+            >
+              Your Learning Studio
             </h2>
-            <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed font-medium">
-              Master vocabulary with precision. Create, study, and test your knowledge 
-              with our intelligent flashcard system.
+            <p className="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed font-light">
+              Curated collections of knowledge, designed for mastery.
             </p>
-          </div>
+          </motion.div>
       
       {!testMode ? (
         // Study Mode
         <>
           {/* Deck Selection and Management */}
-          <div className="bg-white rounded-lg p-8 md:p-12 mb-8 shadow-xl">
-            <h3 className="text-3xl md:text-4xl font-black text-gray-900 text-center mb-8 tracking-tight">
+          <motion.div 
+            className="bg-gray-50 rounded-3xl p-12 md:p-16 mb-16 border border-gray-100"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            viewport={{ once: true, amount: 0.3 }}
+          >
+            <h3 
+              className="text-4xl md:text-5xl font-light text-black text-center mb-12 tracking-tight"
+              style={{ fontFamily: "'Playfair Display', serif" }}
+            >
               {selectedDeck}
             </h3>
-            <div className="flex flex-wrap gap-4 justify-center mb-8">
-              <button
+            <div className="flex flex-wrap gap-6 justify-center mb-12">
+              <motion.button
                 onClick={() => setShowMyDecks(true)}
-                className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-3 font-semibold transition-all duration-200 uppercase tracking-wider"
+                className="bg-black text-white px-10 py-4 font-light text-lg hover:bg-gray-800 transition-all duration-300 tracking-wide"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
-                View Decks
-                </button>
-              <button
+                View Collections
+              </motion.button>
+              <motion.button
                 onClick={() => setShowAddCard(true)}
-                className="border-2 border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white px-8 py-3 font-semibold transition-all duration-200 uppercase tracking-wider"
+                className="border border-black text-black hover:bg-black hover:text-white px-10 py-4 font-light text-lg transition-all duration-300 tracking-wide"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
-                Add Cards
-                </button>
-              </div>
-          </div>
+                Create Cards
+              </motion.button>
+            </div>
+          </motion.div>
 
           {activeFlashcards.length === 0 ? (
-            <div className="bg-white rounded-lg p-12 text-center shadow-xl">
-              <h4 className="text-2xl font-black text-gray-900 mb-4 tracking-tight">
-                Ready to Start?
+            <motion.div 
+              className="bg-gray-50 rounded-3xl p-16 text-center border border-gray-100"
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              viewport={{ once: true, amount: 0.3 }}
+            >
+              <div className="text-6xl mb-8">✨</div>
+              <h4 
+                className="text-3xl md:text-4xl font-light text-black mb-6 tracking-tight"
+                style={{ fontFamily: "'Playfair Display', serif" }}
+              >
+                Ready to Begin?
               </h4>
-              <p className="text-lg text-gray-600 font-medium">
-                No cards in this deck yet. Click "Add Cards" to begin your learning journey.
+              <p className="text-xl text-gray-600 font-light leading-relaxed">
+                Your learning journey starts with a single card. Create your first collection to unlock the magic of knowledge.
               </p>
-            </div>
+            </motion.div>
           ) : (
             <>
               {/* Card counter */}
-              <div className="text-center mb-8">
-                <span className="bg-white px-6 py-2 rounded-full text-gray-900 font-black text-sm uppercase tracking-widest shadow-lg">
-                  Card {currentCardIndex + 1} of {activeFlashcards.length}
+              <motion.div 
+                className="text-center mb-12"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                transition={{ duration: 0.6 }}
+                viewport={{ once: true }}
+              >
+                <span className="bg-black text-white px-8 py-3 text-sm font-light uppercase tracking-widest">
+                  {currentCardIndex + 1} of {activeFlashcards.length}
                 </span>
-              </div>
+              </motion.div>
               
               {/* Current flashcard */}
-              <div className="flex justify-center mb-8">
-                <div className="transform transition-all duration-300">
+              <motion.div 
+                className="flex justify-center mb-12"
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                viewport={{ once: true, amount: 0.3 }}
+              >
+                <div className="transform transition-all duration-500 hover:scale-105">
                   <SimpleFlashcard
                     key={currentCardIndex} // Key ensures component resets when card changes
                     question={activeFlashcards[currentCardIndex].question}
                     answer={activeFlashcards[currentCardIndex].answer}
                   />
                 </div>
-              </div>
+              </motion.div>
               
-              {/* Card Edit Controls */}
-              <div className="flex gap-4 justify-center mb-12">
-                <button
+                            {/* Card Edit Controls */}
+              <motion.div 
+                className="flex gap-6 justify-center mb-16"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                viewport={{ once: true }}
+              >
+                <motion.button
                   onClick={() => handleEditCard(currentCardIndex)}
-                  className="bg-white text-gray-900 px-6 py-3 font-semibold transition-all duration-200 hover:bg-gray-100 uppercase tracking-wider shadow-lg"
+                  className="bg-gray-100 text-black px-8 py-3 font-light text-lg hover:bg-gray-200 transition-all duration-300 tracking-wide"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   Edit
-                </button>
-                <button
+                </motion.button>
+                <motion.button
                   onClick={() => handleDeleteCardClick(currentCardIndex)}
-                  className="border-2 border-white text-white hover:bg-white hover:text-gray-900 px-6 py-3 font-semibold transition-all duration-200 uppercase tracking-wider"
+                  className="border border-gray-300 text-gray-700 hover:bg-gray-100 px-8 py-3 font-light text-lg transition-all duration-300 tracking-wide"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   Delete
-                </button>
-              </div>
+                </motion.button>
+              </motion.div>
             </>
           )}
           
           {activeFlashcards.length > 0 && (
             <>
               {/* Navigation buttons */}
-              <div className="flex gap-4 justify-center mb-8">
-                <button
+              <motion.div 
+                className="flex gap-6 justify-center mb-16"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                viewport={{ once: true }}
+              >
+                <motion.button
                   onClick={goToPrevious}
-                  className="w-12 h-12 bg-white text-gray-900 rounded-full font-bold text-xl hover:bg-gray-100 transition-all duration-200 shadow-lg"
+                  className="w-16 h-16 bg-black text-white rounded-full font-light text-2xl hover:bg-gray-800 transition-all duration-300"
                   title="Previous card"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
                 >
                   ←
-                </button>
+                </motion.button>
                 
-                <button
+                <motion.button
                   onClick={goToNext}
-                  className="w-12 h-12 bg-white text-gray-900 rounded-full font-bold text-xl hover:bg-gray-100 transition-all duration-200 shadow-lg"
+                  className="w-16 h-16 bg-black text-white rounded-full font-light text-2xl hover:bg-gray-800 transition-all duration-300"
                   title="Next card"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
                 >
                   →
-                </button>
-              </div>
+                </motion.button>
+              </motion.div>
               
-                            {/* Start Test Button */}
-                <div className="text-center">
-                  <button 
-                    onClick={handleTestModeToggle}
-                    className="bg-white text-gray-900 px-12 py-4 text-xl font-black hover:bg-gray-100 transition-all duration-300 uppercase tracking-wider shadow-xl"
-                  >
-                    Start Test
-                  </button>
-                </div>
+              {/* Start Test Button */}
+              <motion.div 
+                className="text-center"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.4 }}
+                viewport={{ once: true }}
+              >
+                <motion.button 
+                  onClick={handleTestModeToggle}
+                  className="bg-black text-white px-16 py-5 text-xl font-light hover:bg-gray-800 transition-all duration-300 tracking-wider"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  Begin Assessment
+                </motion.button>
+              </motion.div>
             </>
           )}
         </>
