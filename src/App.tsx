@@ -29,6 +29,9 @@ function App() {
     { question: 'What language is used in React?', answer: 'JavaScript' },
   ];
 
+  // State to track current flashcard index
+  const [currentCardIndex, setCurrentCardIndex] = useState(0);
+
   const resultRef = useRef<HTMLDivElement | null>(null);
   const [userScrolled, setUserScrolled] = useState(false);
   
@@ -579,17 +582,72 @@ function App() {
   const storageInfo = getStorageInfo();
 
   
+  // Navigation functions
+  const goToPrevious = () => {
+    if (currentCardIndex > 0) {
+      setCurrentCardIndex(currentCardIndex - 1);
+    }
+  };
+
+  const goToNext = () => {
+    if (currentCardIndex < flashcards.length - 1) {
+      setCurrentCardIndex(currentCardIndex + 1);
+    }
+  };
+
   return (
-    <div style={{ padding: '40px', fontFamily: 'Arial' }}>
+    <div style={{ padding: '40px', fontFamily: 'Arial', textAlign: 'center' }}>
       <h1>Flashcard App 🧠</h1>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        {flashcards.map((card, index) => (
-          <SimpleFlashcard
-            key={index}
-            question={card.question}
-            answer={card.answer}
-          />
-        ))}
+      
+      {/* Card counter */}
+      <p style={{ color: '#666', marginBottom: '20px' }}>
+        Card {currentCardIndex + 1} of {flashcards.length}
+      </p>
+      
+      {/* Current flashcard */}
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '30px' }}>
+        <SimpleFlashcard
+          key={currentCardIndex} // Key ensures component resets when card changes
+          question={flashcards[currentCardIndex].question}
+          answer={flashcards[currentCardIndex].answer}
+        />
+      </div>
+      
+      {/* Navigation buttons */}
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '20px' }}>
+        <button
+          onClick={goToPrevious}
+          disabled={currentCardIndex === 0}
+          style={{
+            padding: '12px 24px',
+            fontSize: '18px',
+            border: '2px solid #333',
+            borderRadius: '8px',
+            background: currentCardIndex === 0 ? '#ccc' : '#fff',
+            color: currentCardIndex === 0 ? '#666' : '#333',
+            cursor: currentCardIndex === 0 ? 'not-allowed' : 'pointer',
+            transition: '0.3s ease',
+          }}
+        >
+          ← Previous
+        </button>
+        
+        <button
+          onClick={goToNext}
+          disabled={currentCardIndex === flashcards.length - 1}
+          style={{
+            padding: '12px 24px',
+            fontSize: '18px',
+            border: '2px solid #333',
+            borderRadius: '8px',
+            background: currentCardIndex === flashcards.length - 1 ? '#ccc' : '#fff',
+            color: currentCardIndex === flashcards.length - 1 ? '#666' : '#333',
+            cursor: currentCardIndex === flashcards.length - 1 ? 'not-allowed' : 'pointer',
+            transition: '0.3s ease',
+          }}
+        >
+          Next →
+        </button>
       </div>
     </div>
   );
