@@ -629,7 +629,7 @@ function App() {
             transition: '0.3s ease',
           }}
         >
-          ← Previous
+          ←
         </button>
         
         <button
@@ -646,7 +646,7 @@ function App() {
             transition: '0.3s ease',
           }}
         >
-          Next →
+          →
         </button>
       </div>
     </div>
