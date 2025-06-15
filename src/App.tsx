@@ -921,8 +921,8 @@ function App() {
               </div>
               
               {/* Current flashcard */}
-              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
-                <div className="card-transition">
+              <div className="flex justify-center mb-8">
+                <div className="transform transition-all duration-300">
                   <SimpleFlashcard
                     key={currentCardIndex} // Key ensures component resets when card changes
                     question={activeFlashcards[currentCardIndex].question}
@@ -952,10 +952,10 @@ function App() {
           {activeFlashcards.length > 0 && (
             <>
               {/* Navigation buttons */}
-              <div className="navigation-controls">
+              <div className="flex gap-4 justify-center mb-8">
                 <button
                   onClick={goToPrevious}
-                  className="nav-btn"
+                  className="w-12 h-12 bg-white text-gray-900 rounded-full font-bold text-xl hover:bg-gray-100 transition-all duration-200 shadow-lg"
                   title="Previous card"
                 >
                   ←
@@ -963,7 +963,7 @@ function App() {
                 
                 <button
                   onClick={goToNext}
-                  className="nav-btn"
+                  className="w-12 h-12 bg-white text-gray-900 rounded-full font-bold text-xl hover:bg-gray-100 transition-all duration-200 shadow-lg"
                   title="Next card"
                 >
                   →
