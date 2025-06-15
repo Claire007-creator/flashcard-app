@@ -140,8 +140,14 @@ function App() {
     return activeCardIndex;
   };
 
-  // Get current card for test mode
-  const currentTestCard = filteredCards[getCurrentCardIndex()];
+  // Get current card for test mode - adapt to simple flashcard format
+  const getCurrentTestCard = () => {
+    const cardIndex = testOrder === 'random' && shuffledIndices.length > 0 
+      ? shuffledIndices[activeCardIndex] || 0 
+      : activeCardIndex;
+    return flashcards[cardIndex];
+  };
+  const currentTestCard = getCurrentTestCard();
 
   // Text comparison utilities for test mode
   const normalizeText = (text: string): string => {
@@ -470,7 +476,7 @@ function App() {
     
     // Initialize shuffled indices when entering test mode
     if (newTestMode && testOrder === 'random') {
-      const indices = Array.from({ length: filteredCards.length }, (_, i) => i);
+      const indices = Array.from({ length: flashcards.length }, (_, i) => i);
       setShuffledIndices(shuffleArray(indices));
     }
   };
@@ -495,7 +501,7 @@ function App() {
     
     // Generate new shuffled indices if switching to random
     if (order === 'random') {
-      const indices = Array.from({ length: filteredCards.length }, (_, i) => i);
+      const indices = Array.from({ length: flashcards.length }, (_, i) => i);
       setShuffledIndices(shuffleArray(indices));
     } else {
       setShuffledIndices([]);
@@ -505,14 +511,14 @@ function App() {
   const handleSubmitAnswer = () => {
     if (!userAnswer.trim()) return;
     
-    const correctAnswer = testDirection === 'definition-to-word' ? currentTestCard.front : currentTestCard.back;
+    const correctAnswer = testDirection === 'definition-to-word' ? currentTestCard.question : currentTestCard.answer;
     const similarity = calculateSimilarity(userAnswer, correctAnswer);
     const isCorrect = similarity === 1;
     
     // Add the answer to testAnswers
     setTestAnswers(prev => [...prev, {
-      word: currentTestCard.front,
-      definition: currentTestCard.back,
+      word: currentTestCard.question,
+      definition: currentTestCard.answer,
       userAnswer: userAnswer.trim(),
       isCorrect
     }]);
@@ -532,7 +538,7 @@ function App() {
     setShowResult(false);
     setUserScrolled(false); // Reset scroll tracking for the next card
     
-    if (activeCardIndex < filteredCards.length - 1) {
+    if (activeCardIndex < flashcards.length - 1) {
       setActiveCardIndex(activeCardIndex + 1);
     } else {
       // Show test report when all cards are completed
@@ -605,54 +611,268 @@ function App() {
     <div style={{ padding: '40px', fontFamily: 'Arial', textAlign: 'center' }}>
       <h1>Flashcard App</h1>
       
-      {/* Card counter */}
-      <p style={{ color: '#666', marginBottom: '20px' }}>
-        Card {currentCardIndex + 1} of {flashcards.length}
-      </p>
+      {!testMode ? (
+        // Study Mode
+        <>
+          {/* Card counter */}
+          <p style={{ color: '#666', marginBottom: '20px' }}>
+            Card {currentCardIndex + 1} of {flashcards.length}
+          </p>
+          
+          {/* Current flashcard */}
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '30px' }}>
+            <SimpleFlashcard
+              key={currentCardIndex} // Key ensures component resets when card changes
+              question={flashcards[currentCardIndex].question}
+              answer={flashcards[currentCardIndex].answer}
+            />
+          </div>
+          
+          {/* Navigation buttons */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginBottom: '30px' }}>
+            <button
+              onClick={goToPrevious}
+              style={{
+                padding: '12px 24px',
+                fontSize: '18px',
+                border: '2px solid #333',
+                borderRadius: '8px',
+                background: '#fff',
+                color: '#333',
+                cursor: 'pointer',
+                transition: '0.3s ease',
+              }}
+            >
+            ←
+            </button>
+            
+            <button
+              onClick={goToNext}
+              style={{
+                padding: '12px 24px',
+                fontSize: '18px',
+                border: '2px solid #333',
+                borderRadius: '8px',
+                background: '#fff',
+                color: '#333',
+                cursor: 'pointer',
+                transition: '0.3s ease',
+              }}
+            >
+            →
+            </button>
+          </div>
+          
+          {/* Start Test Button */}
+          <button
+            onClick={handleTestModeToggle}
+            style={{
+              padding: '16px 32px',
+              fontSize: '20px',
+              border: '3px solid #007bff',
+              borderRadius: '12px',
+              background: '#007bff',
+              color: '#fff',
+              cursor: 'pointer',
+              transition: '0.3s ease',
+              fontWeight: 'bold',
+            }}
+          >
+            🧪 Start Test
+          </button>
+        </>
+      ) : (
+        // Test Mode
+        <>
+          {/* Test Configuration */}
+          <div style={{ marginBottom: '30px' }}>
+            <h2>Test Mode</h2>
+            <p style={{ color: '#666', marginBottom: '20px' }}>
+              Question {activeCardIndex + 1} of {flashcards.length}
+            </p>
+            
+            {/* Test Direction Toggle */}
+            <div style={{ marginBottom: '20px' }}>
+              <button
+                onClick={() => handleTestDirectionChange('definition-to-word')}
+                style={{
+                  padding: '8px 16px',
+                  margin: '0 5px',
+                  border: '2px solid #333',
+                  borderRadius: '8px',
+                  background: testDirection === 'definition-to-word' ? '#333' : '#fff',
+                  color: testDirection === 'definition-to-word' ? '#fff' : '#333',
+                  cursor: 'pointer',
+                }}
+              >
+                Answer → Question
+              </button>
+              <button
+                onClick={() => handleTestDirectionChange('word-to-definition')}
+                style={{
+                  padding: '8px 16px',
+                  margin: '0 5px',
+                  border: '2px solid #333',
+                  borderRadius: '8px',
+                  background: testDirection === 'word-to-definition' ? '#333' : '#fff',
+                  color: testDirection === 'word-to-definition' ? '#fff' : '#333',
+                  cursor: 'pointer',
+                }}
+              >
+                Question → Answer
+              </button>
+            </div>
+            
+            {/* Test Order Toggle */}
+            <div style={{ marginBottom: '20px' }}>
+              <button
+                onClick={() => handleTestOrderChange('sequential')}
+                style={{
+                  padding: '8px 16px',
+                  margin: '0 5px',
+                  border: '2px solid #333',
+                  borderRadius: '8px',
+                  background: testOrder === 'sequential' ? '#333' : '#fff',
+                  color: testOrder === 'sequential' ? '#fff' : '#333',
+                  cursor: 'pointer',
+                }}
+              >
+                📄 Sequential
+              </button>
+              <button
+                onClick={() => handleTestOrderChange('random')}
+                style={{
+                  padding: '8px 16px',
+                  margin: '0 5px',
+                  border: '2px solid #333',
+                  borderRadius: '8px',
+                  background: testOrder === 'random' ? '#333' : '#fff',
+                  color: testOrder === 'random' ? '#fff' : '#333',
+                  cursor: 'pointer',
+                }}
+              >
+                🔀 Shuffled
+              </button>
+            </div>
+          </div>
+          
+          {/* Test Question */}
+          {!showResult ? (
+            <div style={{ marginBottom: '30px' }}>
+              <div style={{ 
+                border: '2px solid #333', 
+                borderRadius: '10px', 
+                padding: '30px', 
+                marginBottom: '20px',
+                background: '#f9f9f9'
+              }}>
+                <h3 style={{ marginBottom: '20px' }}>
+                  {testDirection === 'definition-to-word' ? 'What is the question for this answer?' : 'What is the answer to this question?'}
+                </h3>
+                <p style={{ fontSize: '18px', fontWeight: 'bold' }}>
+                  {testDirection === 'definition-to-word' ? currentTestCard.answer : currentTestCard.question}
+                </p>
+              </div>
+              
+              <input
+                type="text"
+                value={userAnswer}
+                onChange={(e) => setUserAnswer(e.target.value)}
+                onKeyPress={handleTestKeyPress}
+                placeholder="Type your answer here..."
+                style={{
+                  padding: '12px',
+                  fontSize: '16px',
+                  border: '2px solid #ccc',
+                  borderRadius: '8px',
+                  width: '300px',
+                  marginRight: '10px',
+                }}
+                autoFocus
+              />
+              
+              <button
+                onClick={handleSubmitAnswer}
+                disabled={!userAnswer.trim()}
+                style={{
+                  padding: '12px 24px',
+                  fontSize: '16px',
+                  border: '2px solid #007bff',
+                  borderRadius: '8px',
+                  background: userAnswer.trim() ? '#007bff' : '#ccc',
+                  color: '#fff',
+                  cursor: userAnswer.trim() ? 'pointer' : 'not-allowed',
+                }}
+              >
+                Submit
+              </button>
+            </div>
+          ) : (
+            // Test Result
+            <div style={{ marginBottom: '30px' }}>
+              <div style={{ 
+                border: '2px solid #333', 
+                borderRadius: '10px', 
+                padding: '30px', 
+                marginBottom: '20px',
+                background: '#f9f9f9'
+              }}>
+                <h3>Your Answer: {userAnswer}</h3>
+                <h3>Correct Answer: {testDirection === 'definition-to-word' ? currentTestCard.question : currentTestCard.answer}</h3>
+                <p style={{ 
+                  fontSize: '18px', 
+                  fontWeight: 'bold',
+                  color: calculateSimilarity(userAnswer, testDirection === 'definition-to-word' ? currentTestCard.question : currentTestCard.answer) === 1 ? 'green' : 'red'
+                }}>
+                  {calculateSimilarity(userAnswer, testDirection === 'definition-to-word' ? currentTestCard.question : currentTestCard.answer) === 1 ? 'Correct! ✅' : 'Incorrect ❌'}
+                </p>
+              </div>
+              
+              <button
+                onClick={handleNextTestCard}
+                style={{
+                  padding: '12px 24px',
+                  fontSize: '16px',
+                  border: '2px solid #007bff',
+                  borderRadius: '8px',
+                  background: '#007bff',
+                  color: '#fff',
+                  cursor: 'pointer',
+                }}
+              >
+                {activeCardIndex < flashcards.length - 1 ? 'Next Question' : 'Finish Test'}
+              </button>
+            </div>
+          )}
+          
+          {/* Exit Test Mode */}
+          <button
+            onClick={handleTestModeToggle}
+            style={{
+              padding: '8px 16px',
+              fontSize: '14px',
+              border: '2px solid #dc3545',
+              borderRadius: '8px',
+              background: '#fff',
+              color: '#dc3545',
+              cursor: 'pointer',
+              marginTop: '20px',
+            }}
+          >
+            Exit Test Mode
+          </button>
+        </>
+      )}
       
-      {/* Current flashcard */}
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '30px' }}>
-        <SimpleFlashcard
-          key={currentCardIndex} // Key ensures component resets when card changes
-          question={flashcards[currentCardIndex].question}
-          answer={flashcards[currentCardIndex].answer}
+      {/* Test Report Modal */}
+      {showTestReport && (
+        <TestReport
+          results={testAnswers}
+          testDirection={testDirection}
+          onClose={handleCloseTestReport}
+          category="All"
         />
-      </div>
-      
-      {/* Navigation buttons */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '20px' }}>
-        <button
-          onClick={goToPrevious}
-          style={{
-            padding: '12px 24px',
-            fontSize: '18px',
-            border: '2px solid #333',
-            borderRadius: '8px',
-            background: '#fff',
-            color: '#333',
-            cursor: 'pointer',
-            transition: '0.3s ease',
-          }}
-        >
-        ←
-        </button>
-        
-        <button
-          onClick={goToNext}
-          style={{
-            padding: '12px 24px',
-            fontSize: '18px',
-            border: '2px solid #333',
-            borderRadius: '8px',
-            background: '#fff',
-            color: '#333',
-            cursor: 'pointer',
-            transition: '0.3s ease',
-          }}
-        >
-        →
-        </button>
-      </div>
+      )}
     </div>
   );
   
