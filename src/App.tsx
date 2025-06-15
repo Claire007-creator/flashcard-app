@@ -830,8 +830,30 @@ function App() {
 
   return (
     <div className="app-container">
-      <div className="main-content">
-        <h1 className="app-title">Flashcard App</h1>
+      {/* Hero Section */}
+      <section id="hero" className="hero-section">
+        <div className="hero-content">
+          <h1 className="hero-headline">Learn today. No nonsense.</h1>
+          <p className="hero-subtext">
+            Boost your vocabulary in minutes! Master words, expressions, and sentences with flashcards.
+          </p>
+          <button 
+            onClick={() => document.getElementById('flashcards')?.scrollIntoView({ behavior: 'smooth' })}
+            className="hero-cta-button"
+          >
+            Get Started
+          </button>
+        </div>
+        <div className="scroll-indicator" onClick={() => document.getElementById('flashcards')?.scrollIntoView({ behavior: 'smooth' })}>
+          <div className="scroll-arrow">↓</div>
+          <span className="scroll-text">Scroll to explore</span>
+        </div>
+      </section>
+
+      {/* Flashcard Section */}
+      <section id="flashcards" className="flashcard-section">
+        <div className="main-content">
+          <h2 className="section-title">📚 Your Flashcards</h2>
       
       {!testMode ? (
         // Study Mode
@@ -1755,7 +1777,8 @@ function App() {
           </div>
                  </div>
        )}
-      </div>
+        </div>
+      </section>
     </div>
   );
   
