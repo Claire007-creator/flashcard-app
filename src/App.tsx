@@ -586,12 +586,18 @@ function App() {
   const goToPrevious = () => {
     if (currentCardIndex > 0) {
       setCurrentCardIndex(currentCardIndex - 1);
+    } else {
+      // Loop to last card when at the beginning
+      setCurrentCardIndex(flashcards.length - 1);
     }
   };
 
   const goToNext = () => {
     if (currentCardIndex < flashcards.length - 1) {
       setCurrentCardIndex(currentCardIndex + 1);
+    } else {
+      // Loop back to first card when at the end
+      setCurrentCardIndex(0);
     }
   };
 
@@ -617,15 +623,14 @@ function App() {
       <div style={{ display: 'flex', justifyContent: 'center', gap: '20px' }}>
         <button
           onClick={goToPrevious}
-          disabled={currentCardIndex === 0}
           style={{
             padding: '12px 24px',
             fontSize: '18px',
             border: '2px solid #333',
             borderRadius: '8px',
-            background: currentCardIndex === 0 ? '#ccc' : '#fff',
-            color: currentCardIndex === 0 ? '#666' : '#333',
-            cursor: currentCardIndex === 0 ? 'not-allowed' : 'pointer',
+            background: '#fff',
+            color: '#333',
+            cursor: 'pointer',
             transition: '0.3s ease',
           }}
         >
@@ -634,15 +639,14 @@ function App() {
         
         <button
           onClick={goToNext}
-          disabled={currentCardIndex === flashcards.length - 1}
           style={{
             padding: '12px 24px',
             fontSize: '18px',
             border: '2px solid #333',
             borderRadius: '8px',
-            background: currentCardIndex === flashcards.length - 1 ? '#ccc' : '#fff',
-            color: currentCardIndex === flashcards.length - 1 ? '#666' : '#333',
-            cursor: currentCardIndex === flashcards.length - 1 ? 'not-allowed' : 'pointer',
+            background: '#fff',
+            color: '#333',
+            cursor: 'pointer',
             transition: '0.3s ease',
           }}
         >
