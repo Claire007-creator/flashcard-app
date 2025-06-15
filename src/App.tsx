@@ -32,6 +32,22 @@ function App() {
   // State to track current flashcard index
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
 
+  // Deck management state
+  const [customDecks, setCustomDecks] = useState<{[key: string]: {question: string, answer: string}[]}>({
+    'Sample Deck': flashcards
+  });
+  const [selectedDeck, setSelectedDeck] = useState<string>('Sample Deck');
+  const [showAddCard, setShowAddCard] = useState(false);
+  const [showMyDecks, setShowMyDecks] = useState(false);
+  
+  // Form state for adding cards
+  const [newCard, setNewCard] = useState({
+    question: '',
+    answer: '',
+    category: ''
+  });
+  const [tempCards, setTempCards] = useState<{question: string, answer: string}[]>([]);
+
   const resultRef = useRef<HTMLDivElement | null>(null);
   const [userScrolled, setUserScrolled] = useState(false);
   
@@ -142,12 +158,15 @@ function App() {
     return activeCardIndex;
   };
 
+  // Get active flashcards from selected deck
+  const activeFlashcards = customDecks[selectedDeck] || [];
+
   // Get current card for test mode - adapt to simple flashcard format
   const getCurrentTestCard = () => {
     const cardIndex = testOrder === 'random' && shuffledIndices.length > 0 
       ? shuffledIndices[activeCardIndex] || 0 
       : activeCardIndex;
-    return flashcards[cardIndex];
+    return activeFlashcards[cardIndex];
   };
   const currentTestCard = getCurrentTestCard();
 
@@ -455,7 +474,7 @@ function App() {
     setActiveCardIndex(cardIndex);
   };
 
-  const handleAddCard = () => {
+  const handleAddFlashCard = () => {
     setEditingCard(null);
     setIsFormOpen(true);
   };
@@ -522,7 +541,7 @@ function App() {
     
     // Initialize shuffled indices when entering test mode
     if (newTestMode && testOrder === 'random') {
-      const indices = Array.from({ length: flashcards.length }, (_, i) => i);
+      const indices = Array.from({ length: activeFlashcards.length }, (_, i) => i);
       setShuffledIndices(shuffleArray(indices));
     }
   };
@@ -547,7 +566,7 @@ function App() {
     
     // Generate new shuffled indices if switching to random
     if (order === 'random') {
-      const indices = Array.from({ length: flashcards.length }, (_, i) => i);
+      const indices = Array.from({ length: activeFlashcards.length }, (_, i) => i);
       setShuffledIndices(shuffleArray(indices));
     } else {
       setShuffledIndices([]);
@@ -584,7 +603,7 @@ function App() {
     setShowResult(false);
     setUserScrolled(false); // Reset scroll tracking for the next card
     
-    if (activeCardIndex < flashcards.length - 1) {
+    if (activeCardIndex < activeFlashcards.length - 1) {
       setActiveCardIndex(activeCardIndex + 1);
     } else {
       // Show test report when all cards are completed
@@ -648,19 +667,64 @@ function App() {
   // Get storage info for user feedback
   const storageInfo = getStorageInfo();
 
+  // Deck management handlers
+  const handleAddCard = () => {
+    if (newCard.question.trim() && newCard.answer.trim()) {
+      setTempCards([...tempCards, {
+        question: newCard.question.trim(),
+        answer: newCard.answer.trim()
+      }]);
+      setNewCard({ question: '', answer: '', category: newCard.category });
+    }
+  };
+
+  const handleSaveDeck = () => {
+    if (tempCards.length > 0 && newCard.category.trim()) {
+      const deckName = newCard.category.trim();
+      setCustomDecks(prev => ({
+        ...prev,
+        [deckName]: [...(prev[deckName] || []), ...tempCards]
+      }));
+      setTempCards([]);
+      setNewCard({ question: '', answer: '', category: '' });
+      setShowAddCard(false);
+      setSelectedDeck(deckName);
+    }
+  };
+
+  const handleSelectDeck = (deckName: string) => {
+    setSelectedDeck(deckName);
+    setCurrentCardIndex(0);
+    setTestMode(false);
+    setShowMyDecks(false);
+  };
+
+  const handleDeleteDeck = (deckName: string) => {
+    if (deckName !== 'Sample Deck') {
+      const newDecks = { ...customDecks };
+      delete newDecks[deckName];
+      setCustomDecks(newDecks);
+      if (selectedDeck === deckName) {
+        setSelectedDeck('Sample Deck');
+      }
+    }
+  };
+
   
   // Navigation functions
   const goToPrevious = () => {
+    if (activeFlashcards.length === 0) return;
     if (currentCardIndex > 0) {
       setCurrentCardIndex(currentCardIndex - 1);
     } else {
       // Loop to last card when at the beginning
-      setCurrentCardIndex(flashcards.length - 1);
+      setCurrentCardIndex(activeFlashcards.length - 1);
     }
   };
 
   const goToNext = () => {
-    if (currentCardIndex < flashcards.length - 1) {
+    if (activeFlashcards.length === 0) return;
+    if (currentCardIndex < activeFlashcards.length - 1) {
       setCurrentCardIndex(currentCardIndex + 1);
     } else {
       // Loop back to first card when at the end
@@ -675,72 +739,125 @@ function App() {
       {!testMode ? (
         // Study Mode
         <>
-          {/* Card counter */}
-          <p style={{ color: '#666', marginBottom: '20px' }}>
-            Card {currentCardIndex + 1} of {flashcards.length}
-          </p>
-          
-          {/* Current flashcard */}
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '30px' }}>
-            <SimpleFlashcard
-              key={currentCardIndex} // Key ensures component resets when card changes
-              question={flashcards[currentCardIndex].question}
-              answer={flashcards[currentCardIndex].answer}
-            />
+          {/* Deck Selection and Management */}
+          <div style={{ marginBottom: '30px' }}>
+            <h2 style={{ color: '#333', fontSize: '24px', marginBottom: '15px' }}>
+              📚 {selectedDeck}
+            </h2>
+            <div style={{ marginBottom: '20px' }}>
+              <button
+                onClick={() => setShowMyDecks(true)}
+                style={{
+                  padding: '8px 16px',
+                  margin: '0 5px',
+                  fontSize: '14px',
+                  border: '2px solid #28a745',
+                  borderRadius: '8px',
+                  background: '#fff',
+                  color: '#28a745',
+                  cursor: 'pointer',
+                }}
+              >
+                📋 View My Decks
+              </button>
+              <button
+                onClick={() => setShowAddCard(true)}
+                style={{
+                  padding: '8px 16px',
+                  margin: '0 5px',
+                  fontSize: '14px',
+                  border: '2px solid #007bff',
+                  borderRadius: '8px',
+                  background: '#fff',
+                  color: '#007bff',
+                  cursor: 'pointer',
+                }}
+              >
+                ➕ Add Cards
+              </button>
+            </div>
           </div>
+
+          {activeFlashcards.length === 0 ? (
+            <div style={{ padding: '40px', textAlign: 'center' }}>
+              <p style={{ fontSize: '18px', color: '#666' }}>
+                No cards in this deck yet. Click "Add Cards" to get started!
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* Card counter */}
+              <p style={{ color: '#666', marginBottom: '20px' }}>
+                Card {currentCardIndex + 1} of {activeFlashcards.length}
+              </p>
+              
+              {/* Current flashcard */}
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '30px' }}>
+                <SimpleFlashcard
+                  key={currentCardIndex} // Key ensures component resets when card changes
+                  question={activeFlashcards[currentCardIndex].question}
+                  answer={activeFlashcards[currentCardIndex].answer}
+                />
+              </div>
+            </>
+          )}
           
-          {/* Navigation buttons */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginBottom: '30px' }}>
-            <button
-              onClick={goToPrevious}
-              style={{
-                padding: '12px 24px',
-                fontSize: '18px',
-                border: '2px solid #333',
-                borderRadius: '8px',
-                background: '#fff',
-                color: '#333',
-                cursor: 'pointer',
-                transition: '0.3s ease',
-              }}
-            >
-            ←
-            </button>
-            
-            <button
-              onClick={goToNext}
-              style={{
-                padding: '12px 24px',
-                fontSize: '18px',
-                border: '2px solid #333',
-                borderRadius: '8px',
-                background: '#fff',
-                color: '#333',
-                cursor: 'pointer',
-                transition: '0.3s ease',
-              }}
-            >
-            →
-            </button>
-          </div>
-          
-          {/* Start Test Button */}
-          <button
-            onClick={handleTestModeToggle}
-            style={{
-              padding: '16px 32px',
-              fontSize: '20px',
-              border: '3px solid #007bff',
-              borderRadius: '12px',
-              background: '#007bff',
-              color: '#fff',
-              cursor: 'pointer',
-              transition: '0.3s ease',
-              fontWeight: 'bold',
-            }}
-          >
-            🧪 Start Test
-          </button>
+          {activeFlashcards.length > 0 && (
+            <>
+              {/* Navigation buttons */}
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginBottom: '30px' }}>
+                <button
+                  onClick={goToPrevious}
+                  style={{
+                    padding: '12px 24px',
+                    fontSize: '18px',
+                    border: '2px solid #333',
+                    borderRadius: '8px',
+                    background: '#fff',
+                    color: '#333',
+                    cursor: 'pointer',
+                    transition: '0.3s ease',
+                  }}
+                >
+                ←
+                </button>
+                
+                <button
+                  onClick={goToNext}
+                  style={{
+                    padding: '12px 24px',
+                    fontSize: '18px',
+                    border: '2px solid #333',
+                    borderRadius: '8px',
+                    background: '#fff',
+                    color: '#333',
+                    cursor: 'pointer',
+                    transition: '0.3s ease',
+                  }}
+                >
+                →
+                </button>
+              </div>
+              
+              {/* Start Test Button */}
+              <button
+                onClick={handleTestModeToggle}
+                style={{
+                  padding: '16px 32px',
+                  fontSize: '20px',
+                  border: '3px solid #007bff',
+                  borderRadius: '12px',
+                  background: '#007bff',
+                  color: '#fff',
+                  cursor: 'pointer',
+                  transition: '0.3s ease',
+                  fontWeight: 'bold',
+                }}
+              >
+                🧪 Start Test
+              </button>
+            </>
+          )}
         </>
       ) : (
         // Test Mode
@@ -749,7 +866,7 @@ function App() {
           <div style={{ marginBottom: '30px' }}>
             <h2>Test Mode</h2>
             <p style={{ color: '#666', marginBottom: '20px' }}>
-              Question {activeCardIndex + 1} of {flashcards.length}
+              Question {activeCardIndex + 1} of {activeFlashcards.length}
             </p>
             
             {/* Test Direction Toggle */}
@@ -926,7 +1043,7 @@ function App() {
                    cursor: 'pointer',
                  }}
                >
-                 {activeCardIndex < flashcards.length - 1 ? 'Next Question (or press Enter)' : 'Finish Test (or press Enter)'}
+                 {activeCardIndex < activeFlashcards.length - 1 ? 'Next Question (or press Enter)' : 'Finish Test (or press Enter)'}
                </button>
             </div>
           )}
@@ -958,6 +1075,306 @@ function App() {
           onClose={handleCloseTestReport}
           category="All"
         />
+      )}
+
+      {/* My Decks Modal */}
+      {showMyDecks && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            padding: '30px',
+            borderRadius: '15px',
+            maxWidth: '600px',
+            width: '90%',
+            maxHeight: '80%',
+            overflow: 'auto',
+            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)'
+          }}>
+            <h2 style={{ marginBottom: '20px', textAlign: 'center' }}>📚 My Decks</h2>
+            
+            <div style={{ marginBottom: '20px' }}>
+              {Object.entries(customDecks).map(([deckName, deckCards]) => (
+                <div key={deckName} style={{
+                  border: selectedDeck === deckName ? '3px solid #007bff' : '2px solid #ddd',
+                  borderRadius: '10px',
+                  padding: '15px',
+                  marginBottom: '15px',
+                  backgroundColor: selectedDeck === deckName ? '#f0f8ff' : '#fff'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <h3 style={{ margin: '0 0 5px 0', color: '#333' }}>
+                        {deckName} {selectedDeck === deckName && '(Current)'}
+                      </h3>
+                      <p style={{ margin: '0', color: '#666', fontSize: '14px' }}>
+                        {deckCards.length} cards
+                      </p>
+                    </div>
+                    <div>
+                      <button
+                        onClick={() => handleSelectDeck(deckName)}
+                        style={{
+                          padding: '8px 16px',
+                          margin: '0 5px',
+                          fontSize: '14px',
+                          border: '2px solid #28a745',
+                          borderRadius: '8px',
+                          background: '#28a745',
+                          color: '#fff',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Select
+                      </button>
+                      {deckName !== 'Sample Deck' && (
+                        <button
+                          onClick={() => handleDeleteDeck(deckName)}
+                          style={{
+                            padding: '8px 16px',
+                            margin: '0 5px',
+                            fontSize: '14px',
+                            border: '2px solid #dc3545',
+                            borderRadius: '8px',
+                            background: '#dc3545',
+                            color: '#fff',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          Delete
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div style={{ textAlign: 'center' }}>
+              <button
+                onClick={() => setShowMyDecks(false)}
+                style={{
+                  padding: '12px 24px',
+                  fontSize: '16px',
+                  border: '2px solid #6c757d',
+                  borderRadius: '8px',
+                  background: '#6c757d',
+                  color: '#fff',
+                  cursor: 'pointer',
+                }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Card Modal */}
+      {showAddCard && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            padding: '30px',
+            borderRadius: '15px',
+            maxWidth: '600px',
+            width: '90%',
+            maxHeight: '80%',
+            overflow: 'auto',
+            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)'
+          }}>
+            <h2 style={{ marginBottom: '20px', textAlign: 'center' }}>➕ Add New Cards</h2>
+            
+            {/* Category/Deck Name */}
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
+                Deck Name:
+              </label>
+              <input
+                type="text"
+                value={newCard.category}
+                onChange={(e) => setNewCard({ ...newCard, category: e.target.value })}
+                placeholder="Enter deck name or choose existing"
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  fontSize: '16px',
+                  border: '2px solid #ddd',
+                  borderRadius: '8px',
+                  marginBottom: '10px'
+                }}
+              />
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                {Object.keys(customDecks).map(deckName => (
+                  <button
+                    key={deckName}
+                    onClick={() => setNewCard({ ...newCard, category: deckName })}
+                    style={{
+                      padding: '4px 8px',
+                      fontSize: '12px',
+                      border: '1px solid #ddd',
+                      borderRadius: '4px',
+                      background: newCard.category === deckName ? '#007bff' : '#f8f9fa',
+                      color: newCard.category === deckName ? '#fff' : '#333',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {deckName}
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            {/* Side A */}
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
+                Side A (Question/Term):
+              </label>
+              <textarea
+                value={newCard.question}
+                onChange={(e) => setNewCard({ ...newCard, question: e.target.value })}
+                placeholder="Enter the question or term"
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  fontSize: '16px',
+                  border: '2px solid #ddd',
+                  borderRadius: '8px',
+                  minHeight: '80px',
+                  resize: 'vertical'
+                }}
+              />
+            </div>
+            
+            {/* Side B */}
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
+                Side B (Answer/Definition):
+              </label>
+              <textarea
+                value={newCard.answer}
+                onChange={(e) => setNewCard({ ...newCard, answer: e.target.value })}
+                placeholder="Enter the answer or definition"
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  fontSize: '16px',
+                  border: '2px solid #ddd',
+                  borderRadius: '8px',
+                  minHeight: '80px',
+                  resize: 'vertical'
+                }}
+              />
+            </div>
+            
+            {/* Add to Temporary List Button */}
+            <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+              <button
+                onClick={handleAddCard}
+                disabled={!newCard.question.trim() || !newCard.answer.trim()}
+                style={{
+                  padding: '12px 24px',
+                  fontSize: '16px',
+                  border: '2px solid #28a745',
+                  borderRadius: '8px',
+                  background: newCard.question.trim() && newCard.answer.trim() ? '#28a745' : '#ccc',
+                  color: '#fff',
+                  cursor: newCard.question.trim() && newCard.answer.trim() ? 'pointer' : 'not-allowed',
+                  marginRight: '10px'
+                }}
+              >
+                Add Card to List
+              </button>
+            </div>
+            
+            {/* Temporary Cards List */}
+            {tempCards.length > 0 && (
+              <div style={{ marginBottom: '20px' }}>
+                <h3 style={{ marginBottom: '15px' }}>Cards to Save ({tempCards.length}):</h3>
+                <div style={{ 
+                  maxHeight: '200px', 
+                  overflow: 'auto', 
+                  border: '1px solid #ddd', 
+                  borderRadius: '8px',
+                  padding: '10px'
+                }}>
+                  {tempCards.map((card, index) => (
+                    <div key={index} style={{
+                      backgroundColor: '#f8f9fa',
+                      padding: '10px',
+                      marginBottom: '10px',
+                      borderRadius: '5px',
+                      fontSize: '14px'
+                    }}>
+                      <strong>A:</strong> {card.question}<br />
+                      <strong>B:</strong> {card.answer}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Action Buttons */}
+            <div style={{ textAlign: 'center', display: 'flex', justifyContent: 'center', gap: '10px' }}>
+              {tempCards.length > 0 && (
+                <button
+                  onClick={handleSaveDeck}
+                  disabled={!newCard.category.trim()}
+                  style={{
+                    padding: '12px 24px',
+                    fontSize: '16px',
+                    border: '2px solid #007bff',
+                    borderRadius: '8px',
+                    background: newCard.category.trim() ? '#007bff' : '#ccc',
+                    color: '#fff',
+                    cursor: newCard.category.trim() ? 'pointer' : 'not-allowed',
+                  }}
+                >
+                  💾 Save Deck
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  setShowAddCard(false);
+                  setNewCard({ question: '', answer: '', category: '' });
+                  setTempCards([]);
+                }}
+                style={{
+                  padding: '12px 24px',
+                  fontSize: '16px',
+                  border: '2px solid #6c757d',
+                  borderRadius: '8px',
+                  background: '#6c757d',
+                  color: '#fff',
+                  cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
