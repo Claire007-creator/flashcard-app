@@ -35,7 +35,8 @@ function App() {
   // Deck management state
   const [customDecks, setCustomDecks] = useState<{[key: string]: {question: string, answer: string}[]}>({
     'The Economist': flashcards,
-    'Sample Deck': flashcards
+    'Sample Deck': flashcards,
+    'General': []
   });
   const [selectedDeck, setSelectedDeck] = useState<string>('The Economist');
   const [showAddCard, setShowAddCard] = useState(false);
@@ -52,6 +53,14 @@ function App() {
   // Edit card state
   const [editingCardIndex, setEditingCardIndex] = useState<number | null>(null);
   const [showEditCard, setShowEditCard] = useState(false);
+  
+  // Create new deck state
+  const [showCreateDeck, setShowCreateDeck] = useState(false);
+  const [newDeckName, setNewDeckName] = useState('');
+  
+  // Delete confirmation state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [cardToDelete, setCardToDelete] = useState<number | null>(null);
 
   const resultRef = useRef<HTMLDivElement | null>(null);
   const [userScrolled, setUserScrolled] = useState(false);
@@ -684,8 +693,8 @@ function App() {
   };
 
   const handleSaveDeck = () => {
-    if (tempCards.length > 0 && newCard.category.trim()) {
-      const deckName = newCard.category.trim();
+    if (tempCards.length > 0) {
+      const deckName = newCard.category.trim() || 'General';
       setCustomDecks(prev => ({
         ...prev,
         [deckName]: [...(prev[deckName] || []), ...tempCards]
@@ -705,7 +714,7 @@ function App() {
   };
 
   const handleDeleteDeck = (deckName: string) => {
-    if (deckName !== 'Sample Deck' && deckName !== 'The Economist') {
+    if (deckName !== 'The Economist') {
       const newDecks = { ...customDecks };
       delete newDecks[deckName];
       setCustomDecks(newDecks);
@@ -750,6 +759,33 @@ function App() {
       setCurrentCardIndex(updatedDecks[selectedDeck].length - 1);
     } else if (updatedDecks[selectedDeck].length === 0) {
       setCurrentCardIndex(0);
+    }
+  };
+
+  const handleDeleteCardClick = (cardIndex: number) => {
+    setCardToDelete(cardIndex);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDeleteCard = () => {
+    if (cardToDelete !== null) {
+      handleDeleteCard(cardToDelete);
+      setCardToDelete(null);
+      setShowDeleteConfirm(false);
+    }
+  };
+
+  const handleCreateNewDeck = () => {
+    if (newDeckName.trim() && !customDecks[newDeckName.trim()]) {
+      const deckName = newDeckName.trim();
+      setCustomDecks(prev => ({
+        ...prev,
+        [deckName]: []
+      }));
+      setSelectedDeck(deckName);
+      setNewDeckName('');
+      setShowCreateDeck(false);
+      setShowMyDecks(false);
     }
   };
 
@@ -861,11 +897,7 @@ function App() {
                   ✏️ Edit Card
                 </button>
                 <button
-                  onClick={() => {
-                    if (window.confirm('Are you sure you want to delete this card?')) {
-                      handleDeleteCard(currentCardIndex);
-                    }
-                  }}
+                  onClick={() => handleDeleteCardClick(currentCardIndex)}
                   style={{
                     padding: '8px 16px',
                     fontSize: '14px',
@@ -1182,9 +1214,28 @@ function App() {
             overflow: 'auto',
             boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)'
           }}>
-            <h2 style={{ marginBottom: '20px', textAlign: 'center' }}>📚 My Decks</h2>
-            
-            <div style={{ marginBottom: '20px' }}>
+                         <h2 style={{ marginBottom: '20px', textAlign: 'center' }}>📚 My Decks</h2>
+             
+             {/* Create New Deck Button */}
+             <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+               <button
+                 onClick={() => setShowCreateDeck(true)}
+                 style={{
+                   padding: '12px 24px',
+                   fontSize: '16px',
+                   border: '2px solid #007bff',
+                   borderRadius: '8px',
+                   background: '#007bff',
+                   color: '#fff',
+                   cursor: 'pointer',
+                   fontWeight: 'bold'
+                 }}
+               >
+                 ➕ Create New Deck
+               </button>
+             </div>
+             
+             <div style={{ marginBottom: '20px' }}>
               {Object.entries(customDecks).map(([deckName, deckCards]) => (
                 <div key={deckName} style={{
                   border: selectedDeck === deckName ? '3px solid #007bff' : '2px solid #ddd',
@@ -1218,7 +1269,7 @@ function App() {
                       >
                         Select
                       </button>
-                                             {deckName !== 'Sample Deck' && deckName !== 'The Economist' && (
+                                             {deckName !== 'The Economist' && (
                          <button
                            onClick={() => handleDeleteDeck(deckName)}
                            style={{
@@ -1421,18 +1472,17 @@ function App() {
               {tempCards.length > 0 && (
                 <button
                   onClick={handleSaveDeck}
-                  disabled={!newCard.category.trim()}
                   style={{
                     padding: '12px 24px',
                     fontSize: '16px',
                     border: '2px solid #007bff',
                     borderRadius: '8px',
-                    background: newCard.category.trim() ? '#007bff' : '#ccc',
+                    background: '#007bff',
                     color: '#fff',
-                    cursor: newCard.category.trim() ? 'pointer' : 'not-allowed',
+                    cursor: 'pointer',
                   }}
                 >
-                  💾 Save Deck
+                  💾 Save to {newCard.category.trim() || 'General'}
                 </button>
               )}
               <button
@@ -1560,6 +1610,156 @@ function App() {
                 }}
               >
                 Cancel
+              </button>
+            </div>
+                     </div>
+         </div>
+       )}
+
+      {/* Create New Deck Modal */}
+      {showCreateDeck && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1001
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            padding: '30px',
+            borderRadius: '15px',
+            maxWidth: '400px',
+            width: '90%',
+            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)'
+          }}>
+            <h2 style={{ marginBottom: '20px', textAlign: 'center' }}>📚 Create New Deck</h2>
+            
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
+                Deck Name:
+              </label>
+              <input
+                type="text"
+                value={newDeckName}
+                onChange={(e) => setNewDeckName(e.target.value)}
+                placeholder="Enter deck name"
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  fontSize: '16px',
+                  border: '2px solid #ddd',
+                  borderRadius: '8px'
+                }}
+                autoFocus
+              />
+            </div>
+            
+            <div style={{ textAlign: 'center', display: 'flex', justifyContent: 'center', gap: '10px' }}>
+              <button
+                onClick={handleCreateNewDeck}
+                disabled={!newDeckName.trim() || !!customDecks[newDeckName.trim()]}
+                style={{
+                  padding: '12px 24px',
+                  fontSize: '16px',
+                  border: '2px solid #28a745',
+                  borderRadius: '8px',
+                  background: newDeckName.trim() && !customDecks[newDeckName.trim()] ? '#28a745' : '#ccc',
+                  color: '#fff',
+                  cursor: newDeckName.trim() && !customDecks[newDeckName.trim()] ? 'pointer' : 'not-allowed',
+                }}
+              >
+                Create Deck
+              </button>
+              <button
+                onClick={() => {
+                  setShowCreateDeck(false);
+                  setNewDeckName('');
+                }}
+                style={{
+                  padding: '12px 24px',
+                  fontSize: '16px',
+                  border: '2px solid #6c757d',
+                  borderRadius: '8px',
+                  background: '#6c757d',
+                  color: '#fff',
+                  cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Beautiful Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1001
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            padding: '30px',
+            borderRadius: '15px',
+            maxWidth: '400px',
+            width: '90%',
+            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
+            textAlign: 'center'
+          }}>
+            <div style={{ fontSize: '48px', marginBottom: '20px' }}>🗑️</div>
+            <h2 style={{ marginBottom: '15px', color: '#333' }}>Delete Card</h2>
+            <p style={{ marginBottom: '25px', color: '#666', fontSize: '16px' }}>
+              Are you sure you want to delete this card? This action cannot be undone.
+            </p>
+            
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '15px' }}>
+              <button
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setCardToDelete(null);
+                }}
+                style={{
+                  padding: '12px 24px',
+                  fontSize: '16px',
+                  border: '2px solid #6c757d',
+                  borderRadius: '8px',
+                  background: '#fff',
+                  color: '#6c757d',
+                  cursor: 'pointer',
+                  fontWeight: 'bold'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDeleteCard}
+                style={{
+                  padding: '12px 24px',
+                  fontSize: '16px',
+                  border: '2px solid #dc3545',
+                  borderRadius: '8px',
+                  background: '#dc3545',
+                  color: '#fff',
+                  cursor: 'pointer',
+                  fontWeight: 'bold'
+                }}
+              >
+                Delete
               </button>
             </div>
           </div>

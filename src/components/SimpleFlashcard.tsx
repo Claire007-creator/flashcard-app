@@ -10,8 +10,8 @@ const SimpleFlashcard = ({ question, answer }: FlashcardProps) => {
 
   const cardContainerStyle = {
     perspective: '1000px',
-    width: '300px',
-    height: '200px',
+    width: '450px',
+    height: '250px',
     cursor: 'pointer',
     userSelect: 'none' as const,
   };
