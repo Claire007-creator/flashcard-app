@@ -1,0 +1,303 @@
+.flashcard-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 20px;
+  position: relative;
+}
+
+.flashcard {
+  width: 320px;
+  height: 220px;
+  position: relative;
+  cursor: pointer;
+  perspective: 1000px;
+  margin-bottom: 15px;
+  transition: transform 0.3s ease;
+  outline: none; /* Remove default focus outline */
+}
+
+/* Add a subtle focus ring for keyboard navigation */
+.flashcard:focus {
+  transform: translateY(-2px);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.4);
+}
+
+/* Active card styling - indicates current card for keyboard navigation */
+.flashcard.active {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.6), 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.flashcard.active .flashcard-front,
+.flashcard.active .flashcard-back {
+  border: 2px solid rgba(255, 215, 0, 0.8);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.25);
+}
+
+/* Action buttons */
+.card-actions {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 0.5rem;
+  z-index: 10;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+}
+
+.flashcard:hover .card-actions {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.action-button {
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+  backdrop-filter: blur(4px);
+}
+
+.action-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.edit-button:hover {
+  background: rgba(74, 144, 226, 0.9);
+  color: white;
+}
+
+.delete-button:hover {
+  background: rgba(231, 76, 60, 0.9);
+  color: white;
+}
+
+.flashcard-front,
+.flashcard-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 20px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  transition: transform 0.8s ease;
+  transform-style: preserve-3d;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  /* Improve touch target for mobile */
+  touch-action: manipulation;
+}
+
+.flashcard-front {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  transform: rotateY(0deg);
+}
+
+.flashcard-back {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+  transform: rotateY(180deg);
+}
+
+.flashcard.flipped .flashcard-front {
+  transform: rotateY(-180deg);
+}
+
+.flashcard.flipped .flashcard-back {
+  transform: rotateY(0deg);
+}
+
+.flashcard-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  padding: 25px;
+  text-align: center;
+}
+
+.flashcard-content h3 {
+  margin: 0 0 20px 0;
+  font-size: 1.4em;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.flashcard-content p {
+  margin: 0;
+  font-size: 1.1em;
+  line-height: 1.5;
+  font-family: 'Georgia', serif;
+  font-style: italic;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.instruction {
+  color: #666;
+  font-style: italic;
+  margin: 15px 0;
+  font-size: 0.95em;
+  font-weight: 500;
+  text-align: center;
+  max-width: 320px;
+  min-height: 2.5em; /* Consistent height to prevent layout shift */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Active card instruction highlighting */
+.instruction strong {
+  color: #FFD700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Style for keyboard key display */
+.instruction kbd {
+  background-color: #f1f3f4;
+  border: 1px solid #dadce0;
+  border-radius: 4px;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+  color: #202124;
+  display: inline-block;
+  font-family: monospace;
+  font-size: 0.85em;
+  font-weight: 500;
+  padding: 2px 6px;
+  margin: 0 2px;
+}
+
+.flashcard:hover {
+  transform: translateY(-8px) scale(1.02);
+  transition: transform 0.3s ease;
+}
+
+.flashcard:hover .flashcard-front,
+.flashcard:hover .flashcard-back {
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
+}
+
+/* Override hover effect for active cards to maintain the active styling */
+.flashcard.active:hover {
+  transform: translateY(-5px) scale(1.03);
+  box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.8), 0 15px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* Beautiful gradient alternatives for variety */
+.flashcard:nth-child(odd) .flashcard-front {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.flashcard:nth-child(even) .flashcard-front {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.flashcard:nth-child(odd) .flashcard-back {
+  background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+}
+
+.flashcard:nth-child(even) .flashcard-back {
+  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .flashcard {
+    width: 290px;
+    height: 200px;
+  }
+  
+  .flashcard-content {
+    padding: 20px;
+  }
+  
+  .flashcard-content h3 {
+    font-size: 1.2em;
+    margin-bottom: 15px;
+  }
+  
+  .flashcard-content p {
+    font-size: 1em;
+  }
+  
+  .instruction {
+    max-width: 290px;
+    font-size: 0.9em;
+  }
+
+  /* Always show action buttons on mobile */
+  .card-actions {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  .action-button {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .flashcard {
+    width: 260px;
+    height: 180px;
+  }
+  
+  .flashcard-content {
+    padding: 15px;
+  }
+  
+  .flashcard-content h3 {
+    font-size: 1.1em;
+    margin-bottom: 12px;
+  }
+  
+  .flashcard-content p {
+    font-size: 0.9em;
+  }
+  
+  .instruction {
+    max-width: 260px;
+    font-size: 0.85em;
+  }
+  
+  .action-button {
+    width: 30px;
+    height: 30px;
+    font-size: 0.85rem;
+  }
+}
+
+/* Improve touch experience on mobile */
+@media (hover: none) and (pointer: coarse) {
+  .flashcard:hover {
+    transform: none;
+  }
+  
+  .flashcard:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
+  }
+  
+  .flashcard.active:active {
+    transform: translateY(-3px) scale(0.99);
+  }
+} 

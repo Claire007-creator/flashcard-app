@@ -1,0 +1,262 @@
+import React, { useState, useEffect } from 'react';
+import './App.css';
+import FlashCard from './components/FlashCard';
+import CardForm from './components/CardForm';
+import StorageDemo from './components/StorageDemo';
+import { loadCards, saveCards, getStorageInfo } from './utils/storage';
+
+interface Card {
+  id: number;
+  front: string;
+  back: string;
+}
+
+function App() {
+  // Load flashcards from localStorage on app start
+  const [cards, setCards] = useState<Card[]>(() => {
+    const savedCards = loadCards();
+    console.log('🚀 App started with', savedCards.length, 'flashcards');
+    return savedCards;
+  });
+
+  // State for card management
+  const [activeCardIndex, setActiveCardIndex] = useState<number>(0);
+  const [flippedCards, setFlippedCards] = useState<boolean[]>(new Array(cards.length).fill(false));
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingCard, setEditingCard] = useState<Card | null>(null);
+  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error' | null>(null);
+
+  // Auto-save cards whenever they change
+  useEffect(() => {
+    if (cards.length > 0) {
+      setSaveStatus('saving');
+      const success = saveCards(cards);
+      
+      if (success) {
+        setSaveStatus('saved');
+        // Hide save status after 2 seconds
+        setTimeout(() => setSaveStatus(null), 2000);
+      } else {
+        setSaveStatus('error');
+        // Show error longer (5 seconds)
+        setTimeout(() => setSaveStatus(null), 5000);
+      }
+    }
+  }, [cards]);
+
+  // Update flipped cards array when cards change
+  useEffect(() => {
+    setFlippedCards(new Array(cards.length).fill(false));
+    // Adjust active card index if it's out of bounds
+    if (activeCardIndex >= cards.length && cards.length > 0) {
+      setActiveCardIndex(0);
+    }
+  }, [cards.length, activeCardIndex]);
+
+  // Handle keyboard events at the app level
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      // Don't handle keyboard events when form is open
+      if (isFormOpen) return;
+      
+      if (event.key === 'Enter' || event.key === 'Return') {
+        if (cards.length === 0) return;
+        
+        const currentCardIsFlipped = flippedCards[activeCardIndex];
+        
+        if (!currentCardIsFlipped) {
+          // Card is showing front side (A) - flip to back side (B) and stay there
+          const newFlippedCards = [...flippedCards];
+          newFlippedCards[activeCardIndex] = true;
+          setFlippedCards(newFlippedCards);
+        } else {
+          // Card is showing back side (B) - advance to next card
+          // First, flip current card back to front
+          const newFlippedCards = [...flippedCards];
+          newFlippedCards[activeCardIndex] = false;
+          setFlippedCards(newFlippedCards);
+          
+          // Then advance to next card after a short delay for smooth transition
+          setTimeout(() => {
+            setActiveCardIndex((prevIndex) => {
+              const nextIndex = (prevIndex + 1) % cards.length;
+              return nextIndex;
+            });
+          }, 300); // Shorter delay for quicker progression
+        }
+      }
+    };
+
+    // Add keyboard event listener
+    document.addEventListener('keydown', handleKeyPress);
+
+    // Cleanup event listener when component unmounts
+    return () => {
+      document.removeEventListener('keydown', handleKeyPress);
+    };
+  }, [activeCardIndex, flippedCards, cards.length, isFormOpen]);
+
+  const handleCardFlip = (cardIndex: number) => {
+    // Update flipped state when card is clicked
+    const newFlippedCards = [...flippedCards];
+    newFlippedCards[cardIndex] = !newFlippedCards[cardIndex];
+    setFlippedCards(newFlippedCards);
+    
+    // Set this card as the active one
+    setActiveCardIndex(cardIndex);
+  };
+
+  const handleAddCard = () => {
+    setEditingCard(null);
+    setIsFormOpen(true);
+  };
+
+  const handleEditCard = (cardIndex: number) => {
+    setEditingCard(cards[cardIndex]);
+    setIsFormOpen(true);
+  };
+
+  const handleDeleteCard = (cardIndex: number) => {
+    const newCards = cards.filter((_, index) => index !== cardIndex);
+    setCards(newCards);
+    
+    // Adjust active card index if necessary
+    if (activeCardIndex >= newCards.length && newCards.length > 0) {
+      setActiveCardIndex(newCards.length - 1);
+    } else if (newCards.length === 0) {
+      setActiveCardIndex(0);
+    }
+  };
+
+  const handleSaveCard = (cardData: { front: string; back: string; id?: number }) => {
+    if (editingCard) {
+      // Update existing card
+      const newCards = cards.map(card => 
+        card.id === editingCard.id 
+          ? { ...card, front: cardData.front, back: cardData.back }
+          : card
+      );
+      setCards(newCards);
+    } else {
+      // Add new card
+      const newId = Math.max(...cards.map(c => c.id), 0) + 1;
+      const newCard: Card = {
+        id: newId,
+        front: cardData.front,
+        back: cardData.back
+      };
+      setCards([...cards, newCard]);
+    }
+  };
+
+  // Handle clearing all data
+  const handleClearData = () => {
+    setCards([]);
+    setActiveCardIndex(0);
+    setFlippedCards([]);
+  };
+
+  // Get storage info for user feedback
+  const storageInfo = getStorageInfo();
+
+  return (
+    <div className="App">
+      <header className="App-header">
+        <h1>🎯 Flashy</h1>
+        <p>Learn English words and phrases with interactive flashcards!</p>
+        
+        {/* Save Status Indicator */}
+        {saveStatus && (
+          <div className={`save-status ${saveStatus}`}>
+            {saveStatus === 'saving' && '💾 Saving...'}
+            {saveStatus === 'saved' && '✅ All changes saved automatically'}
+            {saveStatus === 'error' && '⚠️ Failed to save changes'}
+          </div>
+        )}
+        
+        {cards.length > 0 && (
+          <div className="keyboard-instructions">
+            <p>🎮 Press <kbd>Enter</kbd> to flip card → Press <kbd>Enter</kbd> again to advance • Click any card to jump to it</p>
+            <p>📍 Current card: <strong>{activeCardIndex + 1}</strong> of {cards.length} • Side: <strong>{flippedCards[activeCardIndex] ? 'B (Definition)' : 'A (Word)'}</strong></p>
+            {storageInfo.lastModified && (
+              <p className="last-saved">💾 Last saved: {storageInfo.lastModified.toLocaleString()}</p>
+            )}
+          </div>
+        )}
+      </header>
+      
+      <main className="App-main">
+        <section className="flashcards-section">
+          <div className="section-header">
+            <h2>My Vocabulary Cards ({cards.length})</h2>
+            <button className="add-card-button" onClick={handleAddCard}>
+              ➕ Add New Card
+            </button>
+          </div>
+          
+          {cards.length > 0 ? (
+            <div className="flashcards-grid">
+              {cards.map((card, index) => (
+                <FlashCard
+                  key={card.id}
+                  frontText={card.front}
+                  backText={card.back}
+                  isFlipped={flippedCards[index]}
+                  isActive={index === activeCardIndex}
+                  onFlip={() => handleCardFlip(index)}
+                  onEdit={() => handleEditCard(index)}
+                  onDelete={() => handleDeleteCard(index)}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="empty-state">
+              <div className="empty-state-content">
+                <h3>📚 No flashcards yet!</h3>
+                <p>Create your first flashcard to start learning.</p>
+                <button className="create-first-card-button" onClick={handleAddCard}>
+                  ➕ Create Your First Card
+                </button>
+              </div>
+            </div>
+          )}
+        </section>
+        
+        <section className="getting-started">
+          <h2>🚀 How to Use Your Flashcards</h2>
+          <div className="feature-list">
+            <div className="feature-item">
+              <h3>💾 Auto-Save</h3>
+              <p>Your flashcards are automatically saved and will persist between sessions</p>
+            </div>
+            <div className="feature-item">
+              <h3>➕ Create Cards</h3>
+              <p>Click "Add New Card" to create vocabulary flashcards with words and definitions</p>
+            </div>
+            <div className="feature-item">
+              <h3>✏️ Edit & Delete</h3>
+              <p>Hover over any card to see edit and delete buttons</p>
+            </div>
+            <div className="feature-item">
+              <h3>🎮 Study Mode</h3>
+              <p>Press Enter to flip card and see definition, press Enter again to advance to next card</p>
+            </div>
+          </div>
+          
+          {/* Storage Demo Component */}
+          <StorageDemo onClearData={handleClearData} />
+        </section>
+      </main>
+
+      {/* Card Form Modal */}
+      <CardForm
+        isOpen={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        onSave={handleSaveCard}
+        editingCard={editingCard}
+      />
+    </div>
+  );
+}
+
+export default App;
