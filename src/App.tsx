@@ -61,6 +61,10 @@ function App() {
   // Delete confirmation state
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [cardToDelete, setCardToDelete] = useState<number | null>(null);
+  
+  // Deck deletion confirmation state
+  const [showDeleteDeckConfirm, setShowDeleteDeckConfirm] = useState(false);
+  const [deckToDelete, setDeckToDelete] = useState<string | null>(null);
 
   const resultRef = useRef<HTMLDivElement | null>(null);
   const [userScrolled, setUserScrolled] = useState(false);
@@ -789,6 +793,19 @@ function App() {
     }
   };
 
+  const handleDeleteDeckClick = (deckName: string) => {
+    setDeckToDelete(deckName);
+    setShowDeleteDeckConfirm(true);
+  };
+
+  const confirmDeleteDeck = () => {
+    if (deckToDelete) {
+      handleDeleteDeck(deckToDelete);
+      setDeckToDelete(null);
+      setShowDeleteDeckConfirm(false);
+    }
+  };
+
   
   // Navigation functions
   const goToPrevious = () => {
@@ -812,45 +829,28 @@ function App() {
   };
 
   return (
-    <div style={{ padding: '40px', fontFamily: 'Arial', textAlign: 'center' }}>
-      <h1>Flashcard App</h1>
+    <div className="app-container">
+      <div className="main-content">
+        <h1 className="app-title">Flashcard App</h1>
       
       {!testMode ? (
         // Study Mode
         <>
           {/* Deck Selection and Management */}
           <div style={{ marginBottom: '30px' }}>
-            <h2 style={{ color: '#333', fontSize: '24px', marginBottom: '15px' }}>
+            <h2 className="deck-title">
               📚 {selectedDeck}
             </h2>
-            <div style={{ marginBottom: '20px' }}>
+            <div className="deck-controls">
               <button
                 onClick={() => setShowMyDecks(true)}
-                style={{
-                  padding: '8px 16px',
-                  margin: '0 5px',
-                  fontSize: '14px',
-                  border: '2px solid #28a745',
-                  borderRadius: '8px',
-                  background: '#fff',
-                  color: '#28a745',
-                  cursor: 'pointer',
-                }}
+                className="btn btn-success"
               >
                 📋 View My Decks
               </button>
               <button
                 onClick={() => setShowAddCard(true)}
-                style={{
-                  padding: '8px 16px',
-                  margin: '0 5px',
-                  fontSize: '14px',
-                  border: '2px solid #007bff',
-                  borderRadius: '8px',
-                  background: '#fff',
-                  color: '#007bff',
-                  cursor: 'pointer',
-                }}
+                className="btn btn-primary"
               >
                 ➕ Add Cards
               </button>
@@ -858,56 +858,40 @@ function App() {
           </div>
 
           {activeFlashcards.length === 0 ? (
-            <div style={{ padding: '40px', textAlign: 'center' }}>
-              <p style={{ fontSize: '18px', color: '#666' }}>
+            <div className="empty-state">
+              <p>
                 No cards in this deck yet. Click "Add Cards" to get started!
               </p>
             </div>
           ) : (
             <>
               {/* Card counter */}
-              <p style={{ color: '#666', marginBottom: '20px' }}>
+              <p className="card-counter">
                 Card {currentCardIndex + 1} of {activeFlashcards.length}
               </p>
               
               {/* Current flashcard */}
               <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
-                <SimpleFlashcard
-                  key={currentCardIndex} // Key ensures component resets when card changes
-                  question={activeFlashcards[currentCardIndex].question}
-                  answer={activeFlashcards[currentCardIndex].answer}
-                />
+                <div className="card-transition">
+                  <SimpleFlashcard
+                    key={currentCardIndex} // Key ensures component resets when card changes
+                    question={activeFlashcards[currentCardIndex].question}
+                    answer={activeFlashcards[currentCardIndex].answer}
+                  />
+                </div>
               </div>
               
               {/* Card Edit Controls */}
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '30px' }}>
+              <div className="card-edit-controls">
                 <button
                   onClick={() => handleEditCard(currentCardIndex)}
-                  style={{
-                    padding: '8px 16px',
-                    fontSize: '14px',
-                    border: '2px solid #ffc107',
-                    borderRadius: '8px',
-                    background: '#fff',
-                    color: '#ffc107',
-                    cursor: 'pointer',
-                    transition: '0.3s ease',
-                  }}
+                  className="btn btn-warning"
                 >
                   ✏️ Edit Card
                 </button>
                 <button
                   onClick={() => handleDeleteCardClick(currentCardIndex)}
-                  style={{
-                    padding: '8px 16px',
-                    fontSize: '14px',
-                    border: '2px solid #dc3545',
-                    borderRadius: '8px',
-                    background: '#fff',
-                    color: '#dc3545',
-                    cursor: 'pointer',
-                    transition: '0.3s ease',
-                  }}
+                  className="btn btn-danger"
                 >
                   🗑️ Delete Card
                 </button>
@@ -918,54 +902,28 @@ function App() {
           {activeFlashcards.length > 0 && (
             <>
               {/* Navigation buttons */}
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginBottom: '30px' }}>
+              <div className="navigation-controls">
                 <button
                   onClick={goToPrevious}
-                  style={{
-                    padding: '12px 24px',
-                    fontSize: '18px',
-                    border: '2px solid #333',
-                    borderRadius: '8px',
-                    background: '#fff',
-                    color: '#333',
-                    cursor: 'pointer',
-                    transition: '0.3s ease',
-                  }}
+                  className="nav-btn"
+                  title="Previous card"
                 >
-                ←
+                  ←
                 </button>
                 
                 <button
                   onClick={goToNext}
-                  style={{
-                    padding: '12px 24px',
-                    fontSize: '18px',
-                    border: '2px solid #333',
-                    borderRadius: '8px',
-                    background: '#fff',
-                    color: '#333',
-                    cursor: 'pointer',
-                    transition: '0.3s ease',
-                  }}
+                  className="nav-btn"
+                  title="Next card"
                 >
-                →
+                  →
                 </button>
               </div>
               
               {/* Start Test Button */}
               <button
                 onClick={handleTestModeToggle}
-                style={{
-                  padding: '16px 32px',
-                  fontSize: '20px',
-                  border: '3px solid #007bff',
-                  borderRadius: '12px',
-                  background: '#007bff',
-                  color: '#fff',
-                  cursor: 'pointer',
-                  transition: '0.3s ease',
-                  fontWeight: 'bold',
-                }}
+                className="btn btn-primary btn-large"
               >
                 🧪 Start Test
               </button>
@@ -1192,44 +1150,18 @@ function App() {
 
       {/* My Decks Modal */}
       {showMyDecks && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            backgroundColor: 'white',
-            padding: '30px',
-            borderRadius: '15px',
-            maxWidth: '600px',
-            width: '90%',
-            maxHeight: '80%',
-            overflow: 'auto',
-            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)'
-          }}>
-                         <h2 style={{ marginBottom: '20px', textAlign: 'center' }}>📚 My Decks</h2>
+        <div className="modal-overlay">
+          <div className="modal-content">
+             <div className="modal-header">
+               <div className="modal-icon">📚</div>
+               <h2 className="modal-title">My Decks</h2>
+             </div>
              
              {/* Create New Deck Button */}
              <div style={{ textAlign: 'center', marginBottom: '20px' }}>
                <button
                  onClick={() => setShowCreateDeck(true)}
-                 style={{
-                   padding: '12px 24px',
-                   fontSize: '16px',
-                   border: '2px solid #007bff',
-                   borderRadius: '8px',
-                   background: '#007bff',
-                   color: '#fff',
-                   cursor: 'pointer',
-                   fontWeight: 'bold'
-                 }}
+                 className="btn btn-primary"
                >
                  ➕ Create New Deck
                </button>
@@ -1253,40 +1185,44 @@ function App() {
                         {deckCards.length} cards
                       </p>
                     </div>
-                    <div>
-                      <button
-                        onClick={() => handleSelectDeck(deckName)}
-                        style={{
-                          padding: '8px 16px',
-                          margin: '0 5px',
-                          fontSize: '14px',
-                          border: '2px solid #28a745',
-                          borderRadius: '8px',
-                          background: '#28a745',
-                          color: '#fff',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        Select
-                      </button>
-                                             {deckName !== 'The Economist' && (
+                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                       {selectedDeck !== deckName && (
                          <button
-                           onClick={() => handleDeleteDeck(deckName)}
+                           onClick={() => handleSelectDeck(deckName)}
                            style={{
                              padding: '8px 16px',
-                             margin: '0 5px',
                              fontSize: '14px',
-                             border: '2px solid #dc3545',
+                             border: '2px solid #28a745',
                              borderRadius: '8px',
-                             background: '#dc3545',
+                             background: '#28a745',
                              color: '#fff',
                              cursor: 'pointer',
                            }}
                          >
-                           Delete
+                           Select
                          </button>
                        )}
-                    </div>
+                       {deckName !== 'The Economist' && selectedDeck !== deckName && (
+                         <button
+                           onClick={() => handleDeleteDeckClick(deckName)}
+                           style={{
+                             padding: '6px 10px',
+                             fontSize: '12px',
+                             border: '2px solid #dc3545',
+                             borderRadius: '6px',
+                             background: '#fff',
+                             color: '#dc3545',
+                             cursor: 'pointer',
+                             display: 'flex',
+                             alignItems: 'center',
+                             gap: '4px'
+                           }}
+                           title="Delete this deck"
+                         >
+                           🗑️ Delete
+                         </button>
+                       )}
+                     </div>
                   </div>
                 </div>
               ))}
@@ -1314,29 +1250,12 @@ function App() {
 
       {/* Add Card Modal */}
       {showAddCard && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            backgroundColor: 'white',
-            padding: '30px',
-            borderRadius: '15px',
-            maxWidth: '600px',
-            width: '90%',
-            maxHeight: '80%',
-            overflow: 'auto',
-            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)'
-          }}>
-            <h2 style={{ marginBottom: '20px', textAlign: 'center' }}>➕ Add New Cards</h2>
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <div className="modal-icon">➕</div>
+              <h2 className="modal-title">Add New Cards</h2>
+            </div>
             
             {/* Category/Deck Name */}
             <div style={{ marginBottom: '20px' }}>
@@ -1762,9 +1681,81 @@ function App() {
                 Delete
               </button>
             </div>
+                     </div>
+         </div>
+       )}
+
+      {/* Deck Deletion Confirmation Modal */}
+      {showDeleteDeckConfirm && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1002
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            padding: '30px',
+            borderRadius: '15px',
+            maxWidth: '450px',
+            width: '90%',
+            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
+            textAlign: 'center'
+          }}>
+            <div style={{ fontSize: '48px', marginBottom: '20px' }}>📚</div>
+            <h2 style={{ marginBottom: '15px', color: '#333' }}>Delete Deck</h2>
+            <p style={{ marginBottom: '10px', color: '#666', fontSize: '16px' }}>
+              Are you sure you want to delete the deck <strong>"{deckToDelete}"</strong>?
+            </p>
+            <p style={{ marginBottom: '25px', color: '#999', fontSize: '14px' }}>
+              This will permanently delete all {deckToDelete ? customDecks[deckToDelete]?.length || 0 : 0} cards in this deck. This action cannot be undone.
+            </p>
+            
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '15px' }}>
+              <button
+                onClick={() => {
+                  setShowDeleteDeckConfirm(false);
+                  setDeckToDelete(null);
+                }}
+                style={{
+                  padding: '12px 24px',
+                  fontSize: '16px',
+                  border: '2px solid #6c757d',
+                  borderRadius: '8px',
+                  background: '#fff',
+                  color: '#6c757d',
+                  cursor: 'pointer',
+                  fontWeight: 'bold'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDeleteDeck}
+                style={{
+                  padding: '12px 24px',
+                  fontSize: '16px',
+                  border: '2px solid #dc3545',
+                  borderRadius: '8px',
+                  background: '#dc3545',
+                  color: '#fff',
+                  cursor: 'pointer',
+                  fontWeight: 'bold'
+                }}
+              >
+                Delete Deck
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+                 </div>
+       )}
+      </div>
     </div>
   );
   

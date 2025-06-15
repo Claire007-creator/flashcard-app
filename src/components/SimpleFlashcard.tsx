@@ -14,6 +14,7 @@ const SimpleFlashcard = ({ question, answer }: FlashcardProps) => {
     height: '250px',
     cursor: 'pointer',
     userSelect: 'none' as const,
+    filter: 'drop-shadow(0 10px 25px rgba(0, 0, 0, 0.15))',
   };
 
   const cardInnerStyle = {
@@ -21,7 +22,7 @@ const SimpleFlashcard = ({ question, answer }: FlashcardProps) => {
     width: '100%',
     height: '100%',
     textAlign: 'center' as const,
-    transition: 'transform 0.6s',
+    transition: 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
     transformStyle: 'preserve-3d' as const,
     transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
   };
@@ -31,24 +32,27 @@ const SimpleFlashcard = ({ question, answer }: FlashcardProps) => {
     width: '100%',
     height: '100%',
     backfaceVisibility: 'hidden' as const,
-    border: '2px solid #333',
-    borderRadius: '10px',
+    border: 'none',
+    borderRadius: '20px',
     padding: '30px',
     display: 'flex',
     flexDirection: 'column' as const,
     justifyContent: 'center',
     alignItems: 'center',
     boxSizing: 'border-box' as const,
+    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif",
+    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
   };
 
   const frontFaceStyle = {
     ...cardFaceStyle,
-    background: '#fff',
+    background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
   };
 
   const backFaceStyle = {
     ...cardFaceStyle,
-    background: '#f0f0f0',
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    color: 'white',
     transform: 'rotateY(180deg)',
   };
 
@@ -57,16 +61,16 @@ const SimpleFlashcard = ({ question, answer }: FlashcardProps) => {
       <div style={cardInnerStyle}>
         {/* Front face (question) */}
         <div style={frontFaceStyle}>
-          <h2 style={{ margin: '0 0 20px 0', fontSize: '18px' }}>{question}</h2>
-          <p style={{ fontStyle: 'italic', color: '#888', margin: '0', fontSize: '14px' }}>
+          <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: '600', color: '#2d3748', lineHeight: '1.4' }}>{question}</h2>
+          <p style={{ fontStyle: 'italic', color: '#718096', margin: '0', fontSize: '14px', fontWeight: '500' }}>
             (Click to see answer)
           </p>
         </div>
         
         {/* Back face (answer) */}
         <div style={backFaceStyle}>
-          <h2 style={{ margin: '0 0 20px 0', fontSize: '18px', color: '#333' }}>{answer}</h2>
-          <p style={{ fontStyle: 'italic', color: '#666', margin: '0', fontSize: '14px' }}>
+          <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: '600', color: 'white', lineHeight: '1.4' }}>{answer}</h2>
+          <p style={{ fontStyle: 'italic', color: 'rgba(255, 255, 255, 0.8)', margin: '0', fontSize: '14px', fontWeight: '500' }}>
             (Click to see question)
           </p>
         </div>
