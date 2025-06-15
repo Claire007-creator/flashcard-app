@@ -47,6 +47,10 @@ function App() {
     category: ''
   });
   const [tempCards, setTempCards] = useState<{question: string, answer: string}[]>([]);
+  
+  // Edit card state
+  const [editingCardIndex, setEditingCardIndex] = useState<number | null>(null);
+  const [showEditCard, setShowEditCard] = useState(false);
 
   const resultRef = useRef<HTMLDivElement | null>(null);
   const [userScrolled, setUserScrolled] = useState(false);
@@ -479,12 +483,12 @@ function App() {
     setIsFormOpen(true);
   };
 
-  const handleEditCard = (cardIndex: number) => {
+  const handleEditFlashCard = (cardIndex: number) => {
     setEditingCard(cards[cardIndex]);
     setIsFormOpen(true);
   };
 
-  const handleDeleteCard = (cardIndex: number) => {
+  const handleDeleteFlashCard = (cardIndex: number) => {
     const newCards = cards.filter((_, index) => index !== cardIndex);
     setCards(newCards);
     
@@ -710,6 +714,44 @@ function App() {
     }
   };
 
+  const handleEditCard = (cardIndex: number) => {
+    const cardToEdit = activeFlashcards[cardIndex];
+    setEditingCardIndex(cardIndex);
+    setNewCard({
+      question: cardToEdit.question,
+      answer: cardToEdit.answer,
+      category: selectedDeck
+    });
+    setShowEditCard(true);
+  };
+
+  const handleSaveEditedCard = () => {
+    if (editingCardIndex !== null && newCard.question.trim() && newCard.answer.trim()) {
+      const updatedDecks = { ...customDecks };
+      updatedDecks[selectedDeck][editingCardIndex] = {
+        question: newCard.question.trim(),
+        answer: newCard.answer.trim()
+      };
+      setCustomDecks(updatedDecks);
+      setShowEditCard(false);
+      setEditingCardIndex(null);
+      setNewCard({ question: '', answer: '', category: '' });
+    }
+  };
+
+  const handleDeleteCard = (cardIndex: number) => {
+    const updatedDecks = { ...customDecks };
+    updatedDecks[selectedDeck].splice(cardIndex, 1);
+    setCustomDecks(updatedDecks);
+    
+    // Adjust current card index if necessary
+    if (currentCardIndex >= updatedDecks[selectedDeck].length && updatedDecks[selectedDeck].length > 0) {
+      setCurrentCardIndex(updatedDecks[selectedDeck].length - 1);
+    } else if (updatedDecks[selectedDeck].length === 0) {
+      setCurrentCardIndex(0);
+    }
+  };
+
   
   // Navigation functions
   const goToPrevious = () => {
@@ -792,12 +834,50 @@ function App() {
               </p>
               
               {/* Current flashcard */}
-              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '30px' }}>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
                 <SimpleFlashcard
                   key={currentCardIndex} // Key ensures component resets when card changes
                   question={activeFlashcards[currentCardIndex].question}
                   answer={activeFlashcards[currentCardIndex].answer}
                 />
+              </div>
+              
+              {/* Card Edit Controls */}
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '30px' }}>
+                <button
+                  onClick={() => handleEditCard(currentCardIndex)}
+                  style={{
+                    padding: '8px 16px',
+                    fontSize: '14px',
+                    border: '2px solid #ffc107',
+                    borderRadius: '8px',
+                    background: '#fff',
+                    color: '#ffc107',
+                    cursor: 'pointer',
+                    transition: '0.3s ease',
+                  }}
+                >
+                  ✏️ Edit Card
+                </button>
+                <button
+                  onClick={() => {
+                    if (window.confirm('Are you sure you want to delete this card?')) {
+                      handleDeleteCard(currentCardIndex);
+                    }
+                  }}
+                  style={{
+                    padding: '8px 16px',
+                    fontSize: '14px',
+                    border: '2px solid #dc3545',
+                    borderRadius: '8px',
+                    background: '#fff',
+                    color: '#dc3545',
+                    cursor: 'pointer',
+                    transition: '0.3s ease',
+                  }}
+                >
+                  🗑️ Delete Card
+                </button>
               </div>
             </>
           )}
@@ -1359,6 +1439,114 @@ function App() {
                   setShowAddCard(false);
                   setNewCard({ question: '', answer: '', category: '' });
                   setTempCards([]);
+                }}
+                style={{
+                  padding: '12px 24px',
+                  fontSize: '16px',
+                  border: '2px solid #6c757d',
+                  borderRadius: '8px',
+                  background: '#6c757d',
+                  color: '#fff',
+                  cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+                     </div>
+         </div>
+       )}
+
+      {/* Edit Card Modal */}
+      {showEditCard && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            padding: '30px',
+            borderRadius: '15px',
+            maxWidth: '600px',
+            width: '90%',
+            maxHeight: '80%',
+            overflow: 'auto',
+            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)'
+          }}>
+            <h2 style={{ marginBottom: '20px', textAlign: 'center' }}>✏️ Edit Card</h2>
+            
+            {/* Side A */}
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
+                Side A (Question/Term):
+              </label>
+              <textarea
+                value={newCard.question}
+                onChange={(e) => setNewCard({ ...newCard, question: e.target.value })}
+                placeholder="Enter the question or term"
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  fontSize: '16px',
+                  border: '2px solid #ddd',
+                  borderRadius: '8px',
+                  minHeight: '80px',
+                  resize: 'vertical'
+                }}
+              />
+            </div>
+            
+            {/* Side B */}
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
+                Side B (Answer/Definition):
+              </label>
+              <textarea
+                value={newCard.answer}
+                onChange={(e) => setNewCard({ ...newCard, answer: e.target.value })}
+                placeholder="Enter the answer or definition"
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  fontSize: '16px',
+                  border: '2px solid #ddd',
+                  borderRadius: '8px',
+                  minHeight: '80px',
+                  resize: 'vertical'
+                }}
+              />
+            </div>
+            
+            {/* Action Buttons */}
+            <div style={{ textAlign: 'center', display: 'flex', justifyContent: 'center', gap: '10px' }}>
+              <button
+                onClick={handleSaveEditedCard}
+                disabled={!newCard.question.trim() || !newCard.answer.trim()}
+                style={{
+                  padding: '12px 24px',
+                  fontSize: '16px',
+                  border: '2px solid #28a745',
+                  borderRadius: '8px',
+                  background: newCard.question.trim() && newCard.answer.trim() ? '#28a745' : '#ccc',
+                  color: '#fff',
+                  cursor: newCard.question.trim() && newCard.answer.trim() ? 'pointer' : 'not-allowed',
+                }}
+              >
+                💾 Save Changes
+              </button>
+              <button
+                onClick={() => {
+                  setShowEditCard(false);
+                  setEditingCardIndex(null);
+                  setNewCard({ question: '', answer: '', category: '' });
                 }}
                 style={{
                   padding: '12px 24px',
