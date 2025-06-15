@@ -597,7 +597,7 @@ function App() {
 
   return (
     <div style={{ padding: '40px', fontFamily: 'Arial', textAlign: 'center' }}>
-      <h1>Flashcard App 🧠</h1>
+      <h1>Flashcard App</h1>
       
       {/* Card counter */}
       <p style={{ color: '#666', marginBottom: '20px' }}>
