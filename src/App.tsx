@@ -1,3 +1,4 @@
+import SimpleFlashcard from './components/SimpleFlashcard';
 import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 import FlashCard from './components/FlashCard';
@@ -22,6 +23,12 @@ interface User {
 }
 
 function App() {
+  const flashcards = [
+    { question: 'What is the capital of France?', answer: 'Paris' },
+    { question: 'What is 2 + 2?', answer: '4' },
+    { question: 'What language is used in React?', answer: 'JavaScript' },
+  ];
+
   const resultRef = useRef<HTMLDivElement | null>(null);
   const [userScrolled, setUserScrolled] = useState(false);
   
@@ -571,12 +578,22 @@ function App() {
   // Get storage info for user feedback
   const storageInfo = getStorageInfo();
 
+  
   return (
-    <div>
-      <h1>Hello world! 🎉</h1>
-      <p>This is my first flashcard app deployed on Vercel.</p>
+    <div style={{ padding: '40px', fontFamily: 'Arial' }}>
+      <h1>Flashcard App 🧠</h1>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {flashcards.map((card, index) => (
+          <SimpleFlashcard
+            key={index}
+            question={card.question}
+            answer={card.answer}
+          />
+        ))}
+      </div>
     </div>
   );
+  
 }
 
 export default App;
