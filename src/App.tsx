@@ -829,66 +829,73 @@ function App() {
   };
 
   return (
-    <div className="app-container">
+    <div className="scroll-smooth">
       {/* Hero Section */}
-      <section id="hero" className="hero-section">
-        <div className="hero-content">
-          <h1 className="hero-headline">Learn today. No nonsense.</h1>
-          <p className="hero-subtext">
+      <section id="hero" className="min-h-screen flex flex-col justify-center items-center bg-white text-center px-8 relative">
+        <div className="max-w-4xl mx-auto animate-fade-in-up">
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-800 mb-6 leading-tight">
+            <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+              Learn today. No nonsense.
+            </span>
+          </h1>
+          <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
             Boost your vocabulary in minutes! Master words, expressions, and sentences with flashcards.
           </p>
           <button 
             onClick={() => document.getElementById('flashcards')?.scrollIntoView({ behavior: 'smooth' })}
-            className="hero-cta-button"
+            className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-4 rounded-2xl text-lg font-semibold hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 shadow-lg"
           >
             Get Started
           </button>
         </div>
-        <div className="scroll-indicator" onClick={() => document.getElementById('flashcards')?.scrollIntoView({ behavior: 'smooth' })}>
-          <div className="scroll-arrow">↓</div>
-          <span className="scroll-text">Scroll to explore</span>
+        <div 
+          className="absolute bottom-10 left-1/2 transform -translate-x-1/2 flex flex-col items-center cursor-pointer animate-bounce hover:-translate-y-2 transition-transform duration-300"
+          onClick={() => document.getElementById('flashcards')?.scrollIntoView({ behavior: 'smooth' })}
+        >
+          <div className="text-3xl text-purple-600 font-bold mb-2">↓</div>
+          <span className="text-sm text-gray-500 font-medium uppercase tracking-wide">Scroll to explore</span>
         </div>
       </section>
 
       {/* Flashcard Section */}
-      <section id="flashcards" className="flashcard-section">
-        <div className="main-content">
-          <h2 className="section-title">📚 Your Flashcards</h2>
+      <section id="flashcards" className="min-h-screen bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center px-4 py-20">
+        <div className="bg-white/95 backdrop-blur-lg rounded-3xl p-8 md:p-12 shadow-2xl max-w-4xl w-full mx-4">
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-800 mb-8 text-center">📚 Your Flashcards</h2>
       
       {!testMode ? (
         // Study Mode
         <>
           {/* Deck Selection and Management */}
-          <div style={{ marginBottom: '30px' }}>
-            <h2 className="deck-title">
+          <div className="mb-8">
+            <h3 className="text-2xl md:text-3xl font-bold text-gray-700 text-center mb-6">
               📚 {selectedDeck}
-            </h2>
-            <div className="deck-controls">
+            </h3>
+                        <div className="flex flex-wrap gap-4 justify-center mb-8">
               <button
                 onClick={() => setShowMyDecks(true)}
-                className="btn btn-success"
+                className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
               >
                 📋 View My Decks
-              </button>
+                </button>
               <button
                 onClick={() => setShowAddCard(true)}
-                className="btn btn-primary"
+                className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
               >
                 ➕ Add Cards
-              </button>
-            </div>
+                </button>
+              </div>
           </div>
 
           {activeFlashcards.length === 0 ? (
-            <div className="empty-state">
-              <p>
+            <div className="text-center py-12">
+              <p className="text-lg text-gray-600">
                 No cards in this deck yet. Click "Add Cards" to get started!
               </p>
             </div>
           ) : (
             <>
               {/* Card counter */}
-              <p className="card-counter">
+              <p className="text-center text-gray-600 font-medium mb-6">
                 Card {currentCardIndex + 1} of {activeFlashcards.length}
               </p>
               
@@ -904,16 +911,16 @@ function App() {
               </div>
               
               {/* Card Edit Controls */}
-              <div className="card-edit-controls">
+              <div className="flex gap-4 justify-center mb-8">
                 <button
                   onClick={() => handleEditCard(currentCardIndex)}
-                  className="btn btn-warning"
+                  className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
                 >
                   ✏️ Edit Card
                 </button>
                 <button
                   onClick={() => handleDeleteCardClick(currentCardIndex)}
-                  className="btn btn-danger"
+                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
                 >
                   🗑️ Delete Card
                 </button>
@@ -942,13 +949,15 @@ function App() {
                 </button>
               </div>
               
-              {/* Start Test Button */}
-              <button
-                onClick={handleTestModeToggle}
-                className="btn btn-primary btn-large"
-              >
-                🧪 Start Test
-              </button>
+                            {/* Start Test Button */}
+                <div className="text-center">
+                  <button 
+                    onClick={handleTestModeToggle}
+                    className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-4 rounded-2xl text-lg font-semibold hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 shadow-lg"
+                  >
+                    🧪 Start Test
+                  </button>
+                </div>
             </>
           )}
         </>
