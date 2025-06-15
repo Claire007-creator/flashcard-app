@@ -820,13 +820,15 @@ function App() {
           {/* Test Question */}
           {!showResult ? (
             <div style={{ marginBottom: '30px' }}>
-              <div style={{ 
-                border: '2px solid #333', 
-                borderRadius: '10px', 
-                padding: '30px', 
-                marginBottom: '20px',
-                background: '#f9f9f9'
-              }}>
+                             <div style={{ 
+                 border: '2px solid #333', 
+                 borderRadius: '10px', 
+                 padding: '30px', 
+                 marginBottom: '20px',
+                 background: '#f9f9f9',
+                 maxWidth: '500px',
+                 margin: '0 auto 20px auto'
+               }}>
                                  <h3 style={{ marginBottom: '20px' }}>
                    {testDirection === 'definition-to-word' ? 'Side A:' : 'Side B:'}
                  </h3>
