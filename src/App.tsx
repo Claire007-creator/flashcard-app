@@ -114,6 +114,8 @@ function App() {
     };
   }, [showResult]);
 
+  
+
   // Get unique categories from cards
   const categories = ['All', ...Array.from(new Set(cards.map(card => card.category)))];
   
@@ -161,37 +163,45 @@ function App() {
     if (user === correct) return 1;
     if (user.length === 0) return 0;
     
-    // For single words, be more strict about exact matches
+    // Check if both are numbers - require exact match for numbers
+    const userIsNumber = /^\d+$/.test(user);
+    const correctIsNumber = /^\d+$/.test(correct);
+    
+    if (userIsNumber && correctIsNumber) {
+      return user === correct ? 1 : 0;
+    }
+    
+    // For single words that aren't numbers, be more strict about exact matches
     const userWords = user.split(/\s+/);
     const correctWords = correct.split(/\s+/);
     
-         // If both are single words, require exact match or very high similarity
-     if (userWords.length === 1 && correctWords.length === 1) {
-       if (user === correct) return 1;
-       
-       // For single words, only allow very minor typos for very short words
-       const lengthDiff = Math.abs(user.length - correct.length);
-       
-       // If length difference is > 0, it means missing/extra characters - be very strict
-       if (lengthDiff > 0) {
-         // Only allow length differences for very short words (≤ 4 characters)
-         // and only if it's a single character difference
-         if (user.length <= 4 && correct.length <= 4 && lengthDiff === 1) {
-           const distance = levenshteinDistance(user, correct);
-           return distance === 1 ? 1 : 0;
-         }
-         return 0; // No length differences allowed for longer words
-       }
-       
-               // If same length, only allow 1 character substitution for very short words
-        if (user.length <= 4) {
+    // If both are single words, require exact match or very high similarity
+    if (userWords.length === 1 && correctWords.length === 1) {
+      if (user === correct) return 1;
+      
+      // For single words, only allow very minor typos for longer words (> 4 characters)
+      const lengthDiff = Math.abs(user.length - correct.length);
+      
+      // If length difference is > 0, it means missing/extra characters - be very strict
+      if (lengthDiff > 0) {
+        // Only allow length differences for longer words (> 4 characters)
+        // and only if it's a single character difference
+        if (user.length > 4 && correct.length > 4 && lengthDiff === 1) {
           const distance = levenshteinDistance(user, correct);
           return distance === 1 ? 1 : 0;
         }
-        
-        // For words longer than 4 characters, require exact match
-        return 0;
-     }
+        return 0; // No length differences allowed for short words
+      }
+      
+      // If same length, only allow 1 character substitution for longer words (> 4 characters)
+      if (user.length > 4) {
+        const distance = levenshteinDistance(user, correct);
+        return distance === 1 ? 1 : 0;
+      }
+      
+      // For words ≤ 4 characters, require exact match
+      return 0;
+    }
     
     // For phrases, use the old algorithm but be stricter
     const maxLength = Math.max(user.length, correct.length);
@@ -582,6 +592,21 @@ function App() {
     }
   };
 
+  // Handle Enter key press for next question when result is showing
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (showResult && testMode && (event.key === 'Enter' || event.key === 'Return')) {
+        handleNextTestCard();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyPress);
+    
+    return () => {
+      document.removeEventListener('keydown', handleKeyPress);
+    };
+  }, [showResult, testMode, handleNextTestCard]);
+
   const handleCloseTestReport = () => {
     setShowTestReport(false);
     setTestMode(false);
@@ -803,7 +828,7 @@ function App() {
                 background: '#f9f9f9'
               }}>
                                  <h3 style={{ marginBottom: '20px' }}>
-                   {testDirection === 'definition-to-word' ? 'Side A (Type the question for this answer):' : 'Side B (Type the answer for this question):'}
+                   {testDirection === 'definition-to-word' ? 'Side A:' : 'Side B:'}
                  </h3>
                 <p style={{ fontSize: '18px', fontWeight: 'bold' }}>
                   {testDirection === 'definition-to-word' ? currentTestCard.answer : currentTestCard.question}
@@ -887,20 +912,20 @@ function App() {
                  </p>
                </div>
               
-              <button
-                onClick={handleNextTestCard}
-                style={{
-                  padding: '12px 24px',
-                  fontSize: '16px',
-                  border: '2px solid #007bff',
-                  borderRadius: '8px',
-                  background: '#007bff',
-                  color: '#fff',
-                  cursor: 'pointer',
-                }}
-              >
-                {activeCardIndex < flashcards.length - 1 ? 'Next Question' : 'Finish Test'}
-              </button>
+                             <button
+                 onClick={handleNextTestCard}
+                 style={{
+                   padding: '12px 24px',
+                   fontSize: '16px',
+                   border: '2px solid #007bff',
+                   borderRadius: '8px',
+                   background: '#007bff',
+                   color: '#fff',
+                   cursor: 'pointer',
+                 }}
+               >
+                 {activeCardIndex < flashcards.length - 1 ? 'Next Question (or press Enter)' : 'Finish Test (or press Enter)'}
+               </button>
             </div>
           )}
           
